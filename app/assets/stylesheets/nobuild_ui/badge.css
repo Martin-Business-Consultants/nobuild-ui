@@ -1,17 +1,26 @@
-/* Badge (shadcn/ui badge): ui-badge, default (primary), --secondary, --outline, --destructive,
-/* plus status badges --positive, --warning, --info, --negative and --neutral, drawn as shadcn's
-/* data-table example draws a status (an outline badge with the status's icon). ui_badge builds
-/* one; badge_tag and status_tag pick the status. */
+/* Badge (shadcn/ui badge, base-nova): a pill, 1.25rem tall.
+/*
+/*   <span class="ui-badge">New</span>                                    default (primary)
+/*   ui-badge--secondary | --destructive | --outline | --ghost | --link
+/*   <a class="ui-badge" href="…">…</a>                                   a link darkens on hover
+/*   <span class="ui-badge"><svg data-icon="inline-start">…</svg> Done</span>
+/*
+/* Beyond shadcn: status badges --positive, --warning, --info, --negative and --neutral, drawn
+/* as shadcn's data-table example draws a status (an outline badge with the status's icon), and
+/* --count, a number beside a label. ui_badge builds one; badge_tag and status_tag pick the
+/* status. --ui-badge-bg, -fg, -border and -hover-bg re-point a variant. */
 @layer ui {
   .ui-badge {
     align-items: center;
     background-color: var(--ui-badge-bg, var(--primary));
+    block-size: 1.25rem;
     border: 1px solid var(--ui-badge-border, transparent);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-4xl);
+    box-sizing: border-box;
     color: var(--ui-badge-fg, var(--primary-foreground));
     display: inline-flex;
     flex-shrink: 0;
-    font-size: var(--text-x-small);
+    font-size: 0.75rem;
     font-weight: 500;
     gap: 0.25rem;
     inline-size: fit-content;
@@ -20,24 +29,37 @@
     overflow: hidden;
     padding: 0.125rem 0.5rem;
     text-decoration: none;
+    transition: background-color 150ms, border-color 150ms, box-shadow 150ms, color 150ms;
     white-space: nowrap;
+
+    &:has([data-icon="inline-start"]) { padding-inline-start: 0.375rem; }
+    &:has([data-icon="inline-end"]) { padding-inline-end: 0.375rem; }
 
     :is(svg, .icon) {
       --icon-size: 0.75rem;
 
       block-size: 0.75rem;
+      flex-shrink: 0;
       inline-size: 0.75rem;
       pointer-events: none;
     }
 
-    &:is(a):hover {
-      background-color: var(--ui-badge-hover-bg, color-mix(in oklch, var(--ui-badge-bg, var(--primary)) 90%, transparent));
+    @media (any-hover: hover) {
+      &:is(a):hover {
+        background-color: var(--ui-badge-hover-bg, color-mix(in oklch, var(--ui-badge-bg, var(--primary)) 80%, transparent));
+        color: var(--ui-badge-hover-fg, var(--ui-badge-fg, var(--primary-foreground)));
+      }
     }
 
     &:focus-visible {
       border-color: var(--ring);
-      box-shadow: var(--ring-focus);
+      box-shadow: var(--ui-badge-focus-ring, var(--ring-focus));
       outline: none;
+    }
+
+    &[aria-invalid="true"] {
+      border-color: var(--destructive);
+      box-shadow: var(--ring-invalid);
     }
   }
 
@@ -47,8 +69,10 @@
   }
 
   .ui-badge--destructive {
-    --ui-badge-bg: var(--destructive);
-    --ui-badge-fg: var(--destructive-foreground);
+    --ui-badge-bg: color-mix(in oklch, var(--destructive) 10%, transparent);
+    --ui-badge-fg: var(--destructive);
+    --ui-badge-hover-bg: color-mix(in oklch, var(--destructive) 20%, transparent);
+    --ui-badge-focus-ring: var(--ring-invalid);
   }
 
   .ui-badge--outline,
@@ -56,7 +80,52 @@
     --ui-badge-bg: transparent;
     --ui-badge-fg: var(--foreground);
     --ui-badge-border: var(--border);
-    --ui-badge-hover-bg: var(--accent);
+    --ui-badge-hover-bg: var(--muted);
+    --ui-badge-hover-fg: var(--muted-foreground);
+  }
+
+  /* Ghost and link keep the surrounding text colour (ghost) or the primary (link), and
+  /* react to hover on any element, as shadcn's do. */
+  .ui-badge.ui-badge--ghost {
+    --ui-badge-bg: transparent;
+
+    color: inherit;
+
+    @media (any-hover: hover) {
+      &:hover {
+        background-color: var(--ui-badge-ghost-hover-bg, var(--muted));
+        color: var(--muted-foreground);
+      }
+    }
+  }
+
+  .ui-badge--link {
+    --ui-badge-bg: transparent;
+    --ui-badge-fg: var(--primary);
+    --ui-badge-hover-bg: transparent;
+
+    text-underline-offset: 4px;
+
+    @media (any-hover: hover) {
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  :root[data-theme="dark"] {
+    .ui-badge--destructive { --ui-badge-bg: color-mix(in oklch, var(--destructive) 20%, transparent); }
+    .ui-badge--ghost { --ui-badge-ghost-hover-bg: color-mix(in oklch, var(--muted) 50%, transparent); }
+    .ui-badge { --ring-invalid: 0 0 0 3px color-mix(in oklch, var(--destructive) 40%, transparent); }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]),
+    :root[data-theme="system"] {
+      .ui-badge--destructive { --ui-badge-bg: color-mix(in oklch, var(--destructive) 20%, transparent); }
+      .ui-badge--ghost { --ui-badge-ghost-hover-bg: color-mix(in oklch, var(--muted) 50%, transparent); }
+      .ui-badge { --ring-invalid: 0 0 0 3px color-mix(in oklch, var(--destructive) 40%, transparent); }
+    }
   }
 
   /* Status: shadcn's data-table status cell — an outline badge in muted words with the

@@ -1,0 +1,202 @@
+/* Toggle and toggle group (shadcn/ui toggle, toggle-group, base-nova): a two-state button.
+/*
+/*   <button type="button" class="ui-toggle" aria-pressed="false">B</button>    the app flips aria-pressed
+/*   <label class="ui-toggle">                                                  or a native checkbox does,
+/*     <input type="checkbox" name="bold" value="1"> B                         with no JavaScript, and
+/*   </label>                                                                  submits with the form
+/*   ui-toggle--outline;  ui-toggle--sm | --lg
+/*
+/*   <div class="ui-toggle-group" role="group" aria-label="View">              items 0.5rem apart
+/*     <label class="ui-toggle ui-toggle--outline">
+/*       <input type="radio" name="view" value="cards" checked> Cards           radios: pick one
+/*     </label>                                                                checkboxes: pick several
+/*     <label class="ui-toggle ui-toggle--outline">
+/*       <input type="radio" name="view" value="table"> Table
+/*     </label>
+/*   </div>
+/*   ui-toggle-group--spacing-0 joins the items edge to edge (--spacing-1, -3, -4 change the gap);
+/*   ui-toggle-group--vertical stacks them; ui-toggle-group--sm rounds the joined group as sm.
+/*
+/* Pressed is aria-pressed="true", data-state="on" or a checked input inside: a muted fill.
+/* ui_toggle and ui_toggle_group build them. */
+@layer ui {
+  .ui-toggle {
+    --icon-size: 1rem;
+
+    align-items: center;
+    appearance: none;
+    background-color: transparent;
+    block-size: 2rem;
+    border: 0 solid transparent;
+    border-radius: var(--radius-control, var(--radius-lg));
+    box-sizing: border-box;
+    color: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    flex-shrink: 0;
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    gap: 0.25rem;
+    justify-content: center;
+    line-height: 1.25rem;
+    margin: 0;
+    min-inline-size: 2rem;
+    outline: none;
+    padding: 0 0.625rem;
+    position: relative;
+    text-decoration: none;
+    transition: background-color 150ms, border-color 150ms, box-shadow 150ms, color 150ms, opacity 150ms;
+    user-select: none;
+    white-space: nowrap;
+
+    &:has([data-icon="inline-start"]) { padding-inline-start: 0.5rem; }
+    &:has([data-icon="inline-end"]) { padding-inline-end: 0.5rem; }
+
+    :is(svg, .icon) {
+      block-size: var(--icon-size);
+      flex-shrink: 0;
+      inline-size: var(--icon-size);
+      pointer-events: none;
+    }
+
+    /* The native input covers the toggle, invisibly, so a click anywhere flips it. */
+    input:is([type="checkbox"], [type="radio"]) {
+      appearance: none;
+      cursor: pointer;
+      inset: 0;
+      margin: 0;
+      position: absolute;
+    }
+
+    @media (any-hover: hover) {
+      &:hover {
+        background-color: var(--muted);
+        color: var(--foreground);
+      }
+    }
+
+    &:is([aria-pressed="true"], [data-state="on"], :has(input:checked)) {
+      background-color: var(--muted);
+    }
+
+    &:is(:focus-visible, :has(input:focus-visible)) {
+      border-color: var(--ring);
+      box-shadow: var(--ring-focus);
+    }
+
+    &[aria-invalid="true"] {
+      border-color: var(--destructive);
+      box-shadow: var(--ring-invalid);
+    }
+
+    &:is(:disabled, [aria-disabled="true"], :has(input:disabled)) {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  }
+
+  :root[data-theme="dark"] .ui-toggle[aria-invalid="true"] {
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--destructive) 40%, transparent);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:is(:not([data-theme]), [data-theme="system"]) .ui-toggle[aria-invalid="true"] {
+      box-shadow: 0 0 0 3px color-mix(in oklch, var(--destructive) 40%, transparent);
+    }
+  }
+
+  .ui-toggle--outline {
+    border-color: var(--input);
+    border-width: 1px;
+  }
+
+  .ui-toggle--sm {
+    --icon-size: 0.875rem;
+
+    block-size: 1.75rem;
+    border-radius: min(var(--radius-md), 12px);
+    font-size: 0.8rem;
+    min-inline-size: 1.75rem;
+
+    &:has([data-icon="inline-start"]) { padding-inline-start: 0.375rem; }
+    &:has([data-icon="inline-end"]) { padding-inline-end: 0.375rem; }
+  }
+
+  .ui-toggle--lg {
+    block-size: 2.25rem;
+    min-inline-size: 2.25rem;
+  }
+
+  /* Toggle group */
+
+  .ui-toggle-group {
+    align-items: center;
+    border-radius: var(--radius-control, var(--radius-lg));
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    inline-size: fit-content;
+
+    .ui-toggle {
+      &:is(:focus, :focus-visible, :has(input:focus-visible)) {
+        z-index: 10;
+      }
+    }
+  }
+
+  .ui-toggle-group--sm {
+    border-radius: min(var(--radius-md), 10px);
+  }
+
+  .ui-toggle-group--spacing-0 { gap: 0; }
+  .ui-toggle-group--spacing-1 { gap: 0.25rem; }
+  .ui-toggle-group--spacing-3 { gap: 0.75rem; }
+  .ui-toggle-group--spacing-4 { gap: 1rem; }
+
+  .ui-toggle-group--vertical {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  /* Joined (spacing 0): squared items, rounded only at the group's ends, borders not doubled. */
+  .ui-toggle-group.ui-toggle-group--spacing-0 .ui-toggle {
+    border-radius: 0;
+    padding-inline: 0.5rem;
+
+    &:has([data-icon="inline-start"]) { padding-inline-start: 0.375rem; }
+    &:has([data-icon="inline-end"]) { padding-inline-end: 0.375rem; }
+  }
+
+  .ui-toggle-group.ui-toggle-group--spacing-0:not(.ui-toggle-group--vertical) .ui-toggle {
+    &:first-child {
+      border-end-start-radius: var(--radius-control, var(--radius-lg));
+      border-start-start-radius: var(--radius-control, var(--radius-lg));
+    }
+
+    &:last-child {
+      border-end-end-radius: var(--radius-control, var(--radius-lg));
+      border-start-end-radius: var(--radius-control, var(--radius-lg));
+    }
+
+    &.ui-toggle--outline:not(:first-child) {
+      border-inline-start-width: 0;
+    }
+  }
+
+  .ui-toggle-group.ui-toggle-group--spacing-0.ui-toggle-group--vertical .ui-toggle {
+    &:first-child {
+      border-start-end-radius: var(--radius-control, var(--radius-lg));
+      border-start-start-radius: var(--radius-control, var(--radius-lg));
+    }
+
+    &:last-child {
+      border-end-end-radius: var(--radius-control, var(--radius-lg));
+      border-end-start-radius: var(--radius-control, var(--radius-lg));
+    }
+
+    &.ui-toggle--outline:not(:first-child) {
+      border-block-start-width: 0;
+    }
+  }
+}

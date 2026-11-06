@@ -1,0 +1,215 @@
+/* Combobox (shadcn/ui combobox, base-nova): an input group (ComboboxInput, with the chevron
+/* as an icon-xs ghost button at its end) over a listbox popover (ComboboxContent: bg-popover,
+/* ring-1 ring-foreground/10, rounded-lg, shadow-md, max-h-72, 6px below, at least the
+/* input's width plus 1.75rem) whose list filters as you type. The ui--combobox controller
+/* opens, filters, highlights (arrow keys, Enter) and writes the chosen value into the hidden
+/* input. ui_combobox builds it.
+/*
+/*   <div class="ui-combobox" data-controller="ui--combobox">
+/*     <input type="hidden" name="framework" data-ui--combobox-target="hidden">
+/*     <div class="ui-input-group">
+/*       <input class="ui-input" role="combobox" aria-expanded="false" aria-autocomplete="list"
+/*              aria-controls="fw-list" placeholder="Select a framework"
+/*              data-ui--combobox-target="input">
+/*       <span class="ui-input-group__addon ui-input-group__addon--inline-end">
+/*         <button type="button" tabindex="-1" aria-label="Show options"
+/*                 class="ui-button ui-button--ghost ui-input-group__button
+/*                        ui-input-group__button--icon-xs ui-combobox__trigger"
+/*                 data-action="ui--combobox#toggle"><span class="ui-combobox__trigger-icon"></span></button>
+/*       </span>
+/*     </div>
+/*     <div id="fw-list" popover="manual" class="ui-combobox__content" data-ui--combobox-target="content">
+/*       <div class="ui-combobox__empty">No items found.</div>
+/*       <div class="ui-combobox__list" role="listbox">
+/*         <div class="ui-combobox__group" role="group">
+/*           <div class="ui-combobox__label">Frameworks</div>
+/*           <div class="ui-combobox__item" role="option" id="fw-next" data-value="next">Next.js</div>…
+/*         </div>
+/*         <hr class="ui-combobox__separator">
+/*       </div>
+/*     </div>
+/*   </div>
+/*
+/* data-highlighted on an item is the one the arrow keys are on; aria-selected="true" the one
+/* chosen (checked on the right); data-empty on the content when nothing matches. */
+@layer ui {
+  .ui-combobox {
+    display: inline-flex;
+    position: relative;
+
+    .ui-input-group {
+      inline-size: auto;
+    }
+  }
+
+  /* The chevron: muted, size-4; no pressed background. */
+  .ui-combobox__trigger {
+    &:active,
+    &[aria-expanded="true"] {
+      background-color: transparent;
+    }
+  }
+
+  .ui-combobox__trigger-icon {
+    background-color: var(--muted-foreground);
+    block-size: 1rem;
+    flex-shrink: 0;
+    inline-size: 1rem;
+    mask: url("chevron-down.svg") center / contain no-repeat;
+    pointer-events: none;
+  }
+
+  .ui-combobox__content {
+    --ui-combobox-ring: color-mix(in oklch, var(--foreground) 10%, transparent);
+
+    background-color: var(--popover);
+    border: 0;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md), 0 0 0 1px var(--ui-combobox-ring);
+    color: var(--popover-foreground);
+    flex-direction: column;
+    inset: auto;
+    margin: 0;
+    max-block-size: min(18rem, 70dvh);
+    max-inline-size: calc(100vw - 1rem);
+    min-inline-size: 9rem;
+    opacity: 0;
+    overflow: hidden;
+    padding: 0;
+    scale: 0.95;
+    text-align: start;
+    transition: display 100ms allow-discrete, overlay 100ms allow-discrete, opacity 100ms, scale 100ms, translate 100ms;
+
+    &:popover-open {
+      display: flex;
+      opacity: 1;
+      scale: 1;
+      translate: 0 0;
+    }
+
+    @starting-style {
+      &:popover-open {
+        opacity: 0;
+        scale: 0.95;
+        translate: 0 -0.5rem;
+      }
+    }
+
+    /* An input group inside the content (a search box above the list): m-1 mb-0 h-8,
+    /* input/30 with an input/30 border, no shadow, no focus ring. */
+    .ui-input-group {
+      background-color: color-mix(in oklch, var(--input) 30%, transparent);
+      block-size: 2rem;
+      border-color: color-mix(in oklch, var(--input) 30%, transparent);
+      box-shadow: none;
+      inline-size: auto;
+      margin: 0.25rem 0.25rem 0;
+
+      &:focus-within {
+        border-color: color-mix(in oklch, var(--input) 30%, transparent);
+        box-shadow: none;
+      }
+    }
+  }
+
+  /* ComboboxList: p-1, scrolling under max-h-72 less the input's 2.25rem. */
+  .ui-combobox__list {
+    max-block-size: calc(18rem - 2.25rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0.25rem;
+    scroll-padding-block: 0.25rem;
+    scrollbar-width: none;
+
+    .ui-combobox__content[data-empty] & {
+      padding: 0;
+    }
+  }
+
+  .ui-combobox__group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ComboboxLabel: text-muted-foreground px-2 py-1.5 text-xs. */
+  .ui-combobox__label {
+    color: var(--muted-foreground);
+    font-size: var(--text-xs);
+    line-height: 1rem;
+    padding: 0.375rem 0.5rem;
+  }
+
+  /* ComboboxItem: gap-2 rounded-md py-1 pr-8 pl-1.5 text-sm, the accent while highlighted. */
+  .ui-combobox__item {
+    align-items: center;
+    border-radius: var(--radius-md);
+    cursor: default;
+    display: flex;
+    font-size: var(--text-sm);
+    gap: 0.5rem;
+    inline-size: 100%;
+    line-height: 1.25rem;
+    outline: none;
+    padding: 0.25rem 2rem 0.25rem 0.375rem;
+    position: relative;
+    user-select: none;
+
+    &[data-highlighted] {
+      background-color: var(--accent);
+      color: var(--accent-foreground);
+    }
+
+    &[aria-disabled="true"] {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    &[hidden] {
+      display: none;
+    }
+
+    :is(svg, .icon) {
+      --icon-size: 1rem;
+
+      block-size: 1rem;
+      flex-shrink: 0;
+      inline-size: 1rem;
+      pointer-events: none;
+    }
+
+    &[aria-selected="true"]::after {
+      background-color: currentColor;
+      block-size: 1rem;
+      content: "";
+      inline-size: 1rem;
+      inset-inline-end: 0.5rem;
+      mask: url("check.svg") center / contain no-repeat;
+      pointer-events: none;
+      position: absolute;
+    }
+  }
+
+  /* ComboboxEmpty: shown only while nothing matches. */
+  .ui-combobox__empty {
+    color: var(--muted-foreground);
+    display: none;
+    font-size: var(--text-sm);
+    inline-size: 100%;
+    justify-content: center;
+    line-height: 1.25rem;
+    padding-block: 0.5rem;
+    text-align: center;
+
+    .ui-combobox__content[data-empty] & {
+      display: flex;
+    }
+  }
+
+  /* ComboboxSeparator: bg-border -mx-1 my-1 h-px. */
+  .ui-combobox__separator {
+    background-color: var(--border);
+    block-size: 1px;
+    border: 0;
+    margin: 0.25rem -0.25rem;
+  }
+}

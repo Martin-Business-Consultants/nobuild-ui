@@ -1,59 +1,174 @@
-/* Overlays (shadcn/ui dialog, alert-dialog, sheet, dropdown-menu, popover, tooltip, sonner),
-/* on native elements: <dialog> for dialogs and sheets, the popover attribute for menus and
-/* popovers. The ui--popover Stimulus controller places a popover under its trigger; the rest
-/* is CSS.
+/* Overlays (shadcn/ui dialog, alert-dialog, sheet, drawer, dropdown-menu, context-menu, menubar,
+/* navigation-menu, popover, hover-card, tooltip, sonner), drawn as the docs draw them (base-nova),
+/* on native elements: <dialog> for dialogs, sheets and drawers, the popover attribute for menus,
+/* popovers and hover cards. The ui--popover Stimulus controller places a popover beside its
+/* trigger and gives menus their keys (ui--menubar moves between a menubar's menus); the rest is
+/* CSS. A dialog opens with the app's own dialog controller, or with no JavaScript from
+/* <button command="show-modal" commandfor="x"> (ui_dialog_trigger).
 /*
-/*   <dialog class="ui-dialog" id="x">                        open with ui_dialog_trigger, or
-/*     <header class="ui-dialog__header">                      the existing dialog controller
-/*       <h2 class="ui-dialog__title">…</h2>
+/* Dialog (ui_dialog). Sizes: default (24rem), --md (32rem), --lg (42rem).
+/*   <dialog class="ui-dialog" id="x" closedby="any" aria-labelledby="x-title">
+/*     <button class="ui-dialog__close ui-button ui-button--ghost ui-button--icon-sm"
+/*             command="close" commandfor="x" aria-label="Close">✕</button>
+/*     <header class="ui-dialog__header">
+/*       <h2 class="ui-dialog__title" id="x-title">…</h2>
 /*       <p class="ui-dialog__description">…</p>
 /*     </header>
 /*     …
-/*     <footer class="ui-dialog__footer">…buttons…</footer>
+/*     <footer class="ui-dialog__footer">…buttons…</footer>       the last part: it runs to the edges
 /*   </dialog>
 /*
-/*   <dialog class="ui-sheet ui-sheet--right">…same parts…</dialog>
+/* Alert dialog (ui_alert_dialog). --sm for the small one (its two buttons side by side).
+/*   <dialog class="ui-alert-dialog" id="y" aria-labelledby="y-title">
+/*     <header class="ui-alert-dialog__header">
+/*       <span class="ui-alert-dialog__media">…svg…</span>         optional
+/*       <h2 class="ui-alert-dialog__title" id="y-title">Are you absolutely sure?</h2>
+/*       <p class="ui-alert-dialog__description">…</p>
+/*     </header>
+/*     <footer class="ui-alert-dialog__footer">
+/*       <button class="ui-button ui-button--outline" command="close" commandfor="y">Cancel</button>
+/*       <button class="ui-button">Continue</button>
+/*     </footer>
+/*   </dialog>
 /*
+/* Sheet (ui_sheet): --right (the default), --left, --top, --bottom. The sheet's own padding is
+/* shadcn's p-4 on the header and footer, so the body needs none of its own.
+/*   <dialog class="ui-sheet ui-sheet--left" id="z" closedby="any">
+/*     <button class="ui-sheet__close ui-button ui-button--ghost ui-button--icon-sm" …>✕</button>
+/*     <header class="ui-sheet__header"><h2 class="ui-sheet__title">…</h2>
+/*       <p class="ui-sheet__description">…</p></header>
+/*     …
+/*     <footer class="ui-sheet__footer">…</footer>               (ui-dialog__* parts work too)
+/*   </dialog>
+/*
+/* Drawer (ui_drawer): a sheet from the bottom with a handle (--top, --left, --right too). No
+/* swiping: it closes from a button, Escape or (closedby="any") a click outside.
+/*   <dialog class="ui-drawer" id="d" closedby="any">
+/*     <div class="ui-drawer__handle"></div>
+/*     <header class="ui-drawer__header"><h2 class="ui-drawer__title">…</h2>
+/*       <p class="ui-drawer__description">…</p></header>
+/*     <div class="…">…the body, with its own padding (p-4), as shadcn's examples have…</div>
+/*     <footer class="ui-drawer__footer">…</footer>
+/*   </dialog>
+/*
+/* Dropdown menu (ui_dropdown, ui_menu_item, ui_menu_sub, ui_menu_checkbox_item…):
 /*   <div data-controller="ui--popover">
 /*     <button class="ui-button ui-button--outline" popovertarget="menu-1">Open</button>
-/*     <div class="ui-menu" id="menu-1" popover data-ui--popover-target="popover">
+/*     <div class="ui-menu" id="menu-1" popover role="menu" data-ui--popover-target="popover">
 /*       <div class="ui-menu__label">My account</div>
-/*       <a class="ui-menu__item" href="…">Profile <kbd class="ui-menu__shortcut">⌘P</kbd></a>
+/*       <div class="ui-menu__group" role="group">
+/*         <a class="ui-menu__item" href="…">Profile <kbd class="ui-menu__shortcut">⌘P</kbd></a>
+/*         <button class="ui-menu__item ui-menu__item--inset">Billing</button>
+/*       </div>
+/*       <label class="ui-menu__item"><input type="checkbox" checked> Status bar</label>
+/*       <label class="ui-menu__item"><input type="radio" name="pos" checked> Top</label>
+/*       <button class="ui-menu__item" role="menuitemcheckbox" aria-checked="true">Panel</button>
+/*       <div class="ui-menu__sub">
+/*         <button class="ui-menu__item ui-menu__sub-trigger" popovertarget="menu-1-invite">Invite</button>
+/*         <div class="ui-menu ui-menu--sub" id="menu-1-invite" popover role="menu">…items…</div>
+/*       </div>
 /*       <hr class="ui-menu__separator">
 /*       <button class="ui-menu__item ui-menu__item--destructive">Delete</button>
 /*     </div>
 /*   </div>
 /*
+/* Context menu (ui_context_menu): the same menu, opened at the pointer by a right click.
+/*   <div class="ui-context-menu" data-controller="ui--popover"
+/*        data-action="contextmenu->ui--popover#openAt">
+/*     Right click here
+/*     <div class="ui-menu ui-menu--context" id="cm" popover role="menu"
+/*          data-ui--popover-target="popover">…items…</div>
+/*   </div>
+/*
+/* Menubar (ui_menubar, ui_menubar_menu):
+/*   <div class="ui-menubar" role="menubar" data-controller="ui--menubar">
+/*     <div data-controller="ui--popover" data-ui--popover-offset-value="8"
+/*          data-ui--popover-align-offset-value="-4">
+/*       <button class="ui-menubar__trigger" popovertarget="mb-file">File</button>
+/*       <div class="ui-menu ui-menu--menubar" id="mb-file" popover role="menu"
+/*            data-ui--popover-target="popover">…items…</div>
+/*     </div>
+/*   </div>
+/*
+/* Navigation menu (ui_navigation_menu, ui_navigation_menu_item, ui_navigation_menu_link): each
+/* item's content is a popover that opens on hover or click.
+/*   <nav class="ui-navigation-menu"><ul class="ui-navigation-menu__list">
+/*     <li class="ui-navigation-menu__item" data-controller="ui--popover"
+/*         data-ui--popover-hover-value="true" data-ui--popover-open-delay-value="50"
+/*         data-ui--popover-close-delay-value="200" data-ui--popover-offset-value="8">
+/*       <button class="ui-navigation-menu__trigger" popovertarget="nm-1">Getting started
+/*         <span class="ui-navigation-menu__chevron"></span></button>
+/*       <div class="ui-navigation-menu__content" id="nm-1" popover data-ui--popover-target="popover">
+/*         <a class="ui-navigation-menu__link" href="…">
+/*           <span class="ui-navigation-menu__link-title">Introduction</span>
+/*           <span class="ui-navigation-menu__link-description">Re-usable components…</span></a>
+/*       </div>
+/*     </li>
+/*     <li class="ui-navigation-menu__item"><a class="ui-navigation-menu__trigger" href="…">Docs</a></li>
+/*   </ul></nav>
+/*
+/* Popover (ui_popover):
+/*   <div data-controller="ui--popover" data-ui--popover-align-value="center">
+/*     <button class="ui-button ui-button--outline" popovertarget="p-1">Open</button>
+/*     <div class="ui-popover" id="p-1" popover data-ui--popover-target="popover">
+/*       <div class="ui-popover__header">
+/*         <h4 class="ui-popover__title">Dimensions</h4>
+/*         <p class="ui-popover__description">Set the dimensions for the layer.</p>
+/*       </div>
+/*       …
+/*     </div>
+/*   </div>
+/*
+/* Hover card (ui_hover_card): a popover that opens while its trigger is hovered or focused.
+/*   <span data-controller="ui--popover" data-ui--popover-hover-value="true"
+/*         data-ui--popover-align-value="center">
+/*     <a href="…" data-ui--popover-target="trigger">@nextjs</a>
+/*     <div class="ui-hover-card" id="hc-1" popover="manual" data-ui--popover-target="popover">…</div>
+/*   </span>
+/*
+/* Tooltip (ui_tooltip): --bottom, --left, --right besides the top.
 /*   <span class="ui-tooltip">
 /*     <button …>…</button>
 /*     <span role="tooltip" class="ui-tooltip__content">Add to library</span>
-/*   </span> */
+/*   </span>
+/*
+/* Toast (sonner; ui_toast): the toaster sits top centre (--bottom-right, --bottom-center,
+/* --top-right for the others).
+/*   <div class="ui-toaster">
+/*     <div class="ui-toast" role="status">
+/*       <svg class="ui-toast__icon">…</svg>                                      optional
+/*       <div class="ui-toast__content">
+/*         <div class="ui-toast__title">Event has been created</div>
+/*         <div class="ui-toast__description">Sunday, December 03, 2023</div>
+/*       </div>
+/*       <button class="ui-toast__action">Undo</button>                            optional
+/*     </div>
+/*   </div> */
 @layer ui {
-  /* Dialog */
+  /* Dialog, alert dialog, sheet and drawer: the modal <dialog>s */
 
-  html:has(:is(.ui-dialog, .ui-sheet):modal) {
+  html:has(:is(.ui-dialog, .ui-alert-dialog, .ui-sheet, .ui-drawer):modal) {
     overflow: hidden;
   }
 
   .ui-dialog,
-  .ui-sheet {
-    background-color: var(--background);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow-lg);
-    color: var(--foreground);
-    gap: 1rem;
-    padding: 1.5rem;
+  .ui-alert-dialog,
+  .ui-sheet,
+  .ui-drawer {
+    --ui-overlay-ring: color-mix(in oklch, var(--foreground) 10%, transparent);
+
+    background-color: var(--popover);
+    border: 0;
+    color: var(--popover-foreground);
+    font-size: var(--text-sm);
+    line-height: 1.25rem;
     text-align: start;
-    transition: display 150ms allow-discrete, overlay 150ms allow-discrete, opacity 150ms, scale 150ms, translate 200ms;
 
-    &[open] {
-      display: grid;
-    }
-
+    /* DialogOverlay: bg-black/10 with a 4px blur, fading in. */
     &::backdrop {
-      background-color: rgb(0 0 0 / 50%);
+      background-color: rgb(0 0 0 / 10%);
       opacity: 0;
-      transition: display 150ms allow-discrete, overlay 150ms allow-discrete, opacity 150ms;
+      transition: display 100ms allow-discrete, overlay 100ms allow-discrete, opacity 100ms;
     }
 
     &[open]::backdrop {
@@ -65,18 +180,32 @@
         opacity: 0;
       }
     }
+
+    @supports (backdrop-filter: blur(4px)) {
+      &::backdrop {
+        backdrop-filter: blur(4px);
+      }
+    }
   }
 
-  .ui-dialog {
-    border-radius: var(--radius-lg);
-    inline-size: calc(100% - 2rem);
+  /* DialogContent (base-nova): bg-popover, ring-1 ring-foreground/10, rounded-xl, p-4, gap-4,
+  /* text-sm, max-w-[calc(100%-2rem)] and sm:max-w-sm, fading and zooming in from 95%, 100ms. */
+  .ui-dialog,
+  .ui-alert-dialog {
+    border-radius: var(--radius-xl);
+    box-shadow: 0 0 0 1px var(--ui-overlay-ring);
+    gap: 1rem;
+    inline-size: 100%;
     max-block-size: calc(100dvh - 2rem);
-    max-inline-size: 32rem;
+    max-inline-size: calc(100% - 2rem);
     opacity: 0;
     overflow: auto;
+    padding: 1rem;
     scale: 0.95;
+    transition: display 100ms allow-discrete, overlay 100ms allow-discrete, opacity 100ms, scale 100ms;
 
     &[open] {
+      display: grid;
       opacity: 1;
       scale: 1;
     }
@@ -89,36 +218,63 @@
     }
   }
 
-  .ui-dialog--lg { max-inline-size: 42rem; }
-  .ui-dialog--sm { max-inline-size: 24rem; }
-
-  .ui-dialog__header {
-    display: grid;
-    gap: 0.5rem;
-    text-align: center;
-
-    @media (min-width: 640px) {
-      text-align: start;
+  @media (min-width: 640px) {
+    .ui-dialog,
+    .ui-dialog--sm {
+      max-inline-size: 24rem;
     }
+
+    .ui-dialog--md { max-inline-size: 32rem; }
+    .ui-dialog--lg { max-inline-size: 42rem; }
   }
 
+  /* DialogHeader: flex-col gap-2. */
+  .ui-dialog__header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* DialogTitle: text-base leading-none font-medium. */
   .ui-dialog__title {
-    font-size: var(--text-large);
-    font-weight: 600;
+    font-size: var(--text-base);
+    font-weight: 500;
     line-height: 1;
     margin: 0;
   }
 
-  .ui-dialog__description {
+  .ui-dialog__description,
+  .ui-alert-dialog__description,
+  .ui-sheet__description,
+  .ui-drawer__description {
     color: var(--muted-foreground);
-    font-size: var(--text-normal);
+    font-size: var(--text-sm);
+    line-height: 1.25rem;
     margin: 0;
+
+    a {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+
+      &:hover {
+        color: var(--foreground);
+      }
+    }
   }
 
-  .ui-dialog__footer {
+  /* DialogFooter: buttons stacked (the first on top) then in a row at the end, on a muted band
+  /* across the bottom: bg-muted/50 -mx-4 -mb-4 rounded-b-xl border-t p-4. */
+  .ui-dialog__footer,
+  .ui-alert-dialog__footer {
+    background-color: color-mix(in oklch, var(--muted) 50%, transparent);
+    border-end-end-radius: var(--radius-xl);
+    border-end-start-radius: var(--radius-xl);
+    border-block-start: 1px solid var(--border);
     display: flex;
     flex-direction: column-reverse;
     gap: 0.5rem;
+    margin: 0 -1rem -1rem;
+    padding: 1rem;
 
     @media (min-width: 640px) {
       flex-direction: row;
@@ -130,114 +286,463 @@
     }
   }
 
-  /* The ✕ in the corner. */
+  /* The ✕ in the corner: a ghost icon-sm button at top-2 right-2. */
   .ui-dialog__close {
-    border-radius: var(--radius-sm);
-    inset: 1rem 1rem auto auto;
-    opacity: 0.7;
+    inset: 0.5rem 0.5rem auto auto;
     position: absolute;
+  }
 
-    &:hover {
-      opacity: 1;
+  /* Alert dialog (base-nova): max-w-xs, sm:max-w-sm unless small; the header centred over its
+  /* media, then (default size, sm and up) the media beside the title and description. */
+  .ui-alert-dialog {
+    max-inline-size: 20rem;
+  }
+
+  @media (min-width: 640px) {
+    .ui-alert-dialog:not(.ui-alert-dialog--sm) {
+      max-inline-size: 24rem;
     }
   }
 
-  /* Sheet: a dialog that slides in from an edge. */
+  .ui-alert-dialog__header {
+    column-gap: 1rem;
+    display: grid;
+    gap: 0.375rem;
+    grid-template-rows: auto 1fr;
+    place-items: center;
+    text-align: center;
+
+    &:has(.ui-alert-dialog__media) {
+      grid-template-rows: auto auto 1fr;
+    }
+  }
+
+  .ui-alert-dialog__media {
+    align-items: center;
+    background-color: var(--muted);
+    block-size: 2.5rem;
+    border-radius: var(--radius-md);
+    display: inline-flex;
+    inline-size: 2.5rem;
+    justify-content: center;
+    margin-block-end: 0.5rem;
+
+    :is(svg, .icon) {
+      --icon-size: 1.5rem;
+
+      block-size: 1.5rem;
+      inline-size: 1.5rem;
+    }
+  }
+
+  .ui-alert-dialog__title {
+    font-size: var(--text-base);
+    font-weight: 500;
+    line-height: 1.5rem;
+    margin: 0;
+  }
+
+  .ui-alert-dialog__description {
+    text-wrap: balance;
+
+    @media (min-width: 768px) {
+      text-wrap: pretty;
+    }
+  }
+
+  @media (min-width: 640px) {
+    .ui-alert-dialog:not(.ui-alert-dialog--sm) {
+      .ui-alert-dialog__header {
+        place-items: start;
+        text-align: start;
+
+        &:has(.ui-alert-dialog__media) {
+          grid-template-rows: auto 1fr;
+
+          .ui-alert-dialog__title {
+            grid-column-start: 2;
+          }
+        }
+      }
+
+      .ui-alert-dialog__media {
+        grid-row: span 2;
+      }
+    }
+  }
+
+  /* The small one's two buttons share the row. */
+  .ui-alert-dialog--sm .ui-alert-dialog__footer {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Sheet (base-nova): bg-popover, shadow-lg, gap-4, text-sm, a border on its inner edge only,
+  /* sliding 2.5rem in from its side while it fades, 200ms ease-in-out. Left and right: full
+  /* height, w-3/4, sm:max-w-sm. Top and bottom: full width, as tall as it needs. */
   .ui-sheet {
-    align-content: start;
+    --ui-sheet-from: 2.5rem 0;
+
+    border-inline-start: 1px solid var(--border);
     block-size: 100dvh;
-    border-block: 0;
-    border-radius: 0;
+    box-shadow: var(--shadow-lg);
+    gap: 1rem;
     inline-size: 75%;
     inset: 0 0 0 auto;
     margin: 0;
     max-block-size: 100dvh;
-    max-inline-size: 24rem;
+    max-inline-size: 100vw;
+    opacity: 0;
     overflow: auto;
-    translate: 100% 0;
+    padding: 1rem;
+    transition: display 200ms allow-discrete, overlay 200ms allow-discrete, opacity 200ms ease-in-out, translate 200ms ease-in-out;
+    translate: var(--ui-sheet-from);
 
     &[open] {
+      display: flex;
+      flex-direction: column;
+      opacity: 1;
       translate: 0 0;
     }
 
     @starting-style {
       &[open] {
-        translate: 100% 0;
+        opacity: 0;
+        translate: var(--ui-sheet-from);
       }
+    }
+
+    &::backdrop {
+      transition-duration: 150ms;
+    }
+  }
+
+  @media (min-width: 640px) {
+    .ui-sheet {
+      max-inline-size: 24rem;
     }
   }
 
   .ui-sheet--left {
+    --ui-sheet-from: -2.5rem 0;
+
+    border-inline-end: 1px solid var(--border);
+    border-inline-start: 0;
     inset: 0 auto 0 0;
-    translate: -100% 0;
+  }
+
+  .ui-sheet--top,
+  .ui-sheet--bottom {
+    block-size: auto;
+    border-inline-start: 0;
+    inline-size: 100%;
+    max-inline-size: 100%;
+  }
+
+  .ui-sheet--top {
+    --ui-sheet-from: 0 -2.5rem;
+
+    border-block-end: 1px solid var(--border);
+    inset: 0 0 auto;
+  }
+
+  .ui-sheet--bottom {
+    --ui-sheet-from: 0 2.5rem;
+
+    border-block-start: 1px solid var(--border);
+    inset: auto 0 0;
+  }
+
+  @media (min-width: 640px) {
+    .ui-sheet:is(.ui-sheet--top, .ui-sheet--bottom) {
+      max-inline-size: 100%;
+    }
+  }
+
+  /* SheetHeader: flex-col gap-0.5 (its p-4 is the sheet's). */
+  .ui-sheet__header,
+  .ui-sheet .ui-dialog__header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  /* SheetFooter: mt-auto flex-col gap-2, no band. */
+  .ui-sheet__footer,
+  .ui-sheet .ui-dialog__footer {
+    background: none;
+    border: 0;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: auto 0 0;
+    padding: 0;
+
+    form {
+      display: contents;
+    }
+  }
+
+  /* SheetTitle: text-foreground text-base font-medium. */
+  .ui-sheet__title,
+  .ui-sheet .ui-dialog__title {
+    color: var(--foreground);
+    font-size: var(--text-base);
+    font-weight: 500;
+    line-height: 1.5rem;
+    margin: 0;
+  }
+
+  .ui-sheet__close,
+  .ui-sheet .ui-dialog__close {
+    inset: 0.75rem 0.75rem auto auto;
+    position: absolute;
+  }
+
+  /* Drawer (base-nova): from the bottom, rounded-t-xl with border-t, at most the viewport less
+  /* 6rem, a handle on top, sliding in over 450ms. */
+  .ui-drawer {
+    --ui-drawer-from: 0 calc(100% + 2px);
+
+    border-block-start: 1px solid var(--border);
+    border-start-end-radius: var(--radius-xl);
+    border-start-start-radius: var(--radius-xl);
+    inline-size: 100%;
+    inset: auto 0 0;
+    margin: 0;
+    max-block-size: calc(100dvh - 6rem);
+    max-inline-size: 100%;
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: 0;
+    transition: display 450ms allow-discrete, overlay 450ms allow-discrete, translate 450ms cubic-bezier(0.22, 1, 0.36, 1);
+    translate: var(--ui-drawer-from);
+
+    &[open] {
+      display: flex;
+      flex-direction: column;
+      translate: 0 0;
+    }
 
     @starting-style {
       &[open] {
-        translate: -100% 0;
+        translate: var(--ui-drawer-from);
+      }
+    }
+
+    &::backdrop {
+      transition: display 450ms allow-discrete, overlay 450ms allow-discrete, opacity 450ms cubic-bezier(0.32, 0.72, 0, 1);
+    }
+  }
+
+  .ui-drawer--top {
+    --ui-drawer-from: 0 calc(-100% - 2px);
+
+    border-block-end: 1px solid var(--border);
+    border-block-start: 0;
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+    inset: 0 0 auto;
+  }
+
+  .ui-drawer--left,
+  .ui-drawer--right {
+    block-size: 100dvh;
+    border-block-start: 0;
+    inline-size: 75%;
+    max-block-size: 100dvh;
+
+    @media (min-width: 640px) {
+      inline-size: 24rem;
+    }
+  }
+
+  .ui-drawer--left {
+    --ui-drawer-from: calc(-100% - 2px) 0;
+
+    border-inline-end: 1px solid var(--border);
+    border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
+    inset: 0 auto 0 0;
+    padding-inline-end: 0.75rem;
+  }
+
+  .ui-drawer--right {
+    --ui-drawer-from: calc(100% + 2px) 0;
+
+    border-inline-start: 1px solid var(--border);
+    border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+    inset: 0 0 0 auto;
+    padding-inline-start: 0.75rem;
+  }
+
+  /* DrawerSwipeHandle: a 0.75rem strip with a 6rem × 0.25rem bar at its inner edge. */
+  .ui-drawer__handle {
+    align-items: flex-end;
+    block-size: 0.75rem;
+    display: flex;
+    flex-shrink: 0;
+    inline-size: 100%;
+    justify-content: center;
+
+    &::after {
+      background-color: var(--muted);
+      block-size: 0.25rem;
+      border-radius: var(--radius-pill, 99rem);
+      content: "";
+      flex-shrink: 0;
+      inline-size: 6rem;
+    }
+
+    .ui-drawer--top & {
+      align-items: flex-start;
+      order: 99;
+    }
+
+    .ui-drawer:is(.ui-drawer--left, .ui-drawer--right) & {
+      align-items: center;
+      block-size: 100%;
+      inline-size: 0.75rem;
+      inset-block: 0;
+      position: absolute;
+
+      &::after {
+        block-size: 6rem;
+        inline-size: 0.25rem;
+      }
+    }
+
+    .ui-drawer--left & {
+      inset-inline-end: 0;
+      justify-content: flex-start;
+    }
+
+    .ui-drawer--right & {
+      inset-inline-start: 0;
+      justify-content: flex-end;
+    }
+  }
+
+  /* DrawerHeader: gap-0.5 p-4 pb-0, centred on a bottom or top drawer until md. */
+  .ui-drawer__header {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    gap: 0.125rem;
+    padding: 1rem 1rem 0;
+
+    .ui-drawer:not(.ui-drawer--left, .ui-drawer--right) & {
+      text-align: center;
+
+      @media (min-width: 768px) {
+        text-align: start;
       }
     }
   }
 
-  /* Menu (dropdown-menu) and popover */
+  .ui-drawer__title {
+    color: var(--foreground);
+    font-size: var(--text-base);
+    font-weight: 500;
+    line-height: 1.5rem;
+    margin: 0;
+  }
 
+  .ui-drawer__description {
+    text-wrap: balance;
+  }
+
+  /* DrawerFooter: mt-auto flex-col gap-2 p-4 pt-0. */
+  .ui-drawer__footer {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    gap: 0.5rem;
+    margin-block-start: auto;
+    padding: 0 1rem 1rem;
+
+    form {
+      display: contents;
+    }
+  }
+
+  /* Popups: menus, popovers, hover cards and a navigation menu's content */
+
+  /* bg-popover, ring-1 ring-foreground/10 rather than a border, rounded-lg, shadow-md; fading
+  /* and zooming in from 95% while sliding 0.5rem in from the trigger's side (data-side, which
+  /* the controller sets), 100ms; fading and zooming out. */
   .ui-menu,
-  .ui-popover {
+  .ui-popover,
+  .ui-hover-card,
+  .ui-navigation-menu__content {
+    --ui-popup-ring: color-mix(in oklch, var(--foreground) 10%, transparent);
+    --ui-popup-from: 0 -0.5rem;
+
     background-color: var(--popover);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-md);
+    border: 0;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md), 0 0 0 1px var(--ui-popup-ring);
     color: var(--popover-foreground);
+    font-size: var(--text-sm);
     inset: auto;
-    text-align: start;
+    line-height: 1.25rem;
     margin: 0;
     opacity: 0;
+    overflow: visible;
     scale: 0.95;
-    transition: display 100ms allow-discrete, overlay 100ms allow-discrete, opacity 100ms, scale 100ms;
+    text-align: start;
+    transform-origin: top;
+    transition: display 100ms allow-discrete, overlay 100ms allow-discrete, opacity 100ms, scale 100ms, translate 100ms;
 
     &:popover-open {
       opacity: 1;
       scale: 1;
+      translate: 0 0;
     }
 
     @starting-style {
       &:popover-open {
         opacity: 0;
         scale: 0.95;
+        translate: var(--ui-popup-from);
       }
+    }
+
+    &[data-side="top"] {
+      --ui-popup-from: 0 0.5rem;
+
+      transform-origin: bottom;
+    }
+
+    &[data-side="right"] {
+      --ui-popup-from: -0.5rem 0;
+
+      transform-origin: left;
+    }
+
+    &[data-side="left"] {
+      --ui-popup-from: 0.5rem 0;
+
+      transform-origin: right;
     }
   }
 
-  /* Without the controller (or before it places one), a popover sits in the middle. */
+  /* Without the controller (or before it places one), a popup sits in the middle. */
   .ui-menu:not([data-placed]),
-  .ui-popover:not([data-placed]) {
+  .ui-popover:not([data-placed]),
+  .ui-hover-card:not([data-placed]),
+  .ui-navigation-menu__content:not([data-placed]) {
     inset: 0;
     margin: auto;
   }
 
-  /* shadcn's DropdownMenuContent as the docs draw it (base-nova): bg-popover, ring-1
-  /* ring-foreground/10 rather than a border, rounded-lg, p-1, shadow-md, min-w-32, fading and
-  /* zooming in from 95% while it slides down from 0.5rem, 100ms. */
+  /* DropdownMenuContent: min-w-32 (and at least as wide as its trigger), p-1, scrolling when
+  /* taller than the viewport. */
   .ui-menu {
-    --ui-menu-ring: color-mix(in oklch, var(--foreground) 10%, transparent);
-
-    border: 0;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md), 0 0 0 1px var(--ui-menu-ring);
-    max-block-size: min(24rem, 70dvh);
-    min-inline-size: 8rem;
+    max-block-size: calc(100dvh - 1rem);
+    min-inline-size: max(8rem, var(--ui-anchor-width, 0px));
+    overflow-x: hidden;
     overflow-y: auto;
     padding: 0.25rem;
-    transition: display 100ms allow-discrete, overlay 100ms allow-discrete, opacity 100ms, scale 100ms, translate 100ms;
-
-    &:popover-open {
-      translate: 0 0;
-    }
-
-    @starting-style {
-      &:popover-open {
-        translate: 0 -0.5rem;
-      }
-    }
 
     &:popover-open {
       display: flex;
@@ -249,15 +754,35 @@
     }
   }
 
-  .ui-popover {
-    inline-size: 18rem;
-    max-inline-size: calc(100vw - 1rem);
-    padding: 1rem;
+  /* DropdownMenuSubContent: min-w-[96px], shadow-lg. */
+  .ui-menu--sub {
+    box-shadow: var(--shadow-lg), 0 0 0 1px var(--ui-popup-ring);
+    min-inline-size: 6rem;
+  }
+
+  /* ContextMenuContent: min-w-36; its sub-menus have a border and shadow-lg, min-w-32. */
+  .ui-menu--context {
+    min-inline-size: 9rem;
+
+    .ui-menu--sub {
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-lg);
+      min-inline-size: 8rem;
+    }
+  }
+
+  .ui-context-menu {
+    user-select: none;
+  }
+
+  .ui-menu__group {
+    display: flex;
+    flex-direction: column;
   }
 
   /* DropdownMenuItem (base-nova): gap-1.5, rounded-md, px-1.5 py-1, text-sm, svgs size-4, the
-  /* accent on focus. A checkable one (CheckboxItem, RadioItem) keeps pr-8 for its check,
-  /* pinned right-2. */
+  /* accent (and accent-foreground on everything in it) while highlighted. A checkable one
+  /* (CheckboxItem, RadioItem) keeps pr-8 for its check, pinned right-2. */
   .ui-menu__item {
     align-items: center;
     background: none;
@@ -287,9 +812,9 @@
       --icon-size: 1rem;
 
       block-size: 1rem;
-      color: var(--muted-foreground);
       flex-shrink: 0;
       inline-size: 1rem;
+      pointer-events: none;
     }
 
     &:is(:hover, :focus-visible, [aria-selected="true"]) {
@@ -327,7 +852,16 @@
     }
   }
 
-  .ui-menu__item--destructive {
+  /* data-inset: pl-7, lining up with items that have an icon. */
+  .ui-menu__item--inset,
+  .ui-menu__label--inset,
+  .ui-menu__item[data-inset],
+  .ui-menu__label[data-inset] {
+    padding-inline-start: 1.75rem;
+  }
+
+  .ui-menu__item--destructive,
+  .ui-menu__item[data-variant="destructive"] {
     color: var(--destructive);
 
     :is(svg, .icon) {
@@ -337,6 +871,44 @@
     &:is(:hover, :focus-visible) {
       background-color: color-mix(in oklch, var(--destructive) 10%, transparent);
       color: var(--destructive);
+    }
+  }
+
+  :root[data-theme="dark"] :is(.ui-menu__item--destructive, .ui-menu__item[data-variant="destructive"]):is(:hover, :focus-visible) {
+    background-color: color-mix(in oklch, var(--destructive) 20%, transparent);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:is(:not([data-theme]), [data-theme="system"]) :is(.ui-menu__item--destructive, .ui-menu__item[data-variant="destructive"]):is(:hover, :focus-visible) {
+      background-color: color-mix(in oklch, var(--destructive) 20%, transparent);
+    }
+  }
+
+  /* DropdownMenuSubTrigger: a chevron at the end; the accent while its menu is open. */
+  .ui-menu__sub {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ui-menu__sub-trigger {
+    &::after {
+      background-color: currentColor;
+      block-size: 1rem;
+      content: "";
+      flex-shrink: 0;
+      inline-size: 1rem;
+      margin-inline-start: auto;
+      mask: url("chevron-down.svg") center / contain no-repeat;
+      rotate: -90deg;
+    }
+
+    &:dir(rtl)::after {
+      rotate: 90deg;
+    }
+
+    &[aria-expanded="true"] {
+      background-color: var(--accent);
+      color: var(--accent-foreground);
     }
   }
 
@@ -375,71 +947,435 @@
     color: var(--muted-foreground);
   }
 
+  /* DropdownMenuSeparator: bg-border -mx-1 my-1 h-px. */
   .ui-menu__separator {
     background-color: var(--border);
     block-size: 1px;
     border: 0;
+    flex-shrink: 0;
     margin: 0.25rem -0.25rem;
   }
 
+  /* DropdownMenuShortcut: ml-auto text-xs tracking-widest, muted until its item is highlighted. */
   .ui-menu__shortcut {
     background: none;
     border: 0;
     color: var(--muted-foreground);
-    opacity: 1;
-    padding: 0;
-    text-transform: none;
     font-family: inherit;
     font-size: var(--text-xs);
     letter-spacing: 0.1em;
+    line-height: 1rem;
     margin-inline-start: auto;
+    opacity: 1;
+    padding: 0;
+    text-transform: none;
+
+    .ui-menu__item:is(:hover, :focus-visible, [aria-selected="true"]):not(.ui-menu__item--destructive, [data-variant="destructive"]) & {
+      color: var(--accent-foreground);
+    }
   }
 
-  /* Tooltip: shown while its trigger is hovered or focused. */
+  /* Menubar (base-nova): h-8 gap-0.5 rounded-lg border p-[3px]; its triggers rounded-sm
+  /* px-1.5 py-[2px] text-sm font-medium, muted while hovered or open. */
+  .ui-menubar {
+    align-items: center;
+    block-size: 2rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    display: flex;
+    gap: 0.125rem;
+    padding: 3px;
+  }
+
+  .ui-menubar__trigger {
+    align-items: center;
+    background: none;
+    border: 0;
+    border-radius: var(--radius-sm);
+    color: inherit;
+    display: flex;
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    line-height: 1.25rem;
+    outline: none;
+    padding: 2px 0.375rem;
+    user-select: none;
+
+    &:is(:hover, :focus-visible, [aria-expanded="true"]) {
+      background-color: var(--muted);
+    }
+  }
+
+  /* MenubarContent: min-w-36; its label text-sm font-medium (not muted); its checkbox and
+  /* radio items keep pl-7 with the check on the left, left-1.5. */
+  .ui-menu--menubar {
+    min-inline-size: 9rem;
+
+    .ui-menu--sub {
+      min-inline-size: 8rem;
+    }
+
+    .ui-menu__label {
+      color: inherit;
+      font-size: var(--text-sm);
+      line-height: 1.25rem;
+    }
+
+    .ui-menu__item:is([aria-checked], :has(input:is([type="radio"], [type="checkbox"]))) {
+      padding-inline: 1.75rem 0.375rem;
+
+      &::after {
+        inset-inline: 0.375rem auto;
+      }
+    }
+  }
+
+  /* Navigation menu (base-nova) */
+
+  .ui-navigation-menu {
+    align-items: center;
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    max-inline-size: max-content;
+    position: relative;
+  }
+
+  .ui-navigation-menu__list {
+    align-items: center;
+    display: flex;
+    flex: 1;
+    gap: 0;
+    justify-content: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .ui-navigation-menu__item {
+    position: relative;
+  }
+
+  /* NavigationMenuTrigger: h-9 rounded-lg px-2.5 py-1.5 text-sm font-medium, muted on hover and
+  /* focus, half muted while open. A plain link in the list takes the same class
+  /* (navigationMenuTriggerStyle). */
+  .ui-navigation-menu__trigger {
+    align-items: center;
+    background: none;
+    block-size: 2.25rem;
+    border: 0;
+    border-radius: var(--radius-lg);
+    color: inherit;
+    display: inline-flex;
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    inline-size: max-content;
+    justify-content: center;
+    line-height: 1.25rem;
+    outline: none;
+    padding: 0.375rem 0.625rem;
+    text-decoration: none;
+    transition: background-color 150ms, box-shadow 150ms;
+
+    &:is(:hover, :focus) {
+      background-color: var(--muted);
+    }
+
+    &[aria-expanded="true"] {
+      background-color: color-mix(in oklch, var(--muted) 50%, transparent);
+
+      &:is(:hover, :focus) {
+        background-color: var(--muted);
+      }
+    }
+
+    &:focus-visible {
+      box-shadow: var(--ring-focus);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  }
+
+  /* The trigger's chevron: size-3, ml-1, turned over while open. */
+  .ui-navigation-menu__chevron {
+    background-color: currentColor;
+    block-size: 0.75rem;
+    flex-shrink: 0;
+    inline-size: 0.75rem;
+    inset-block-start: 1px;
+    margin-inline-start: 0.25rem;
+    mask: url("chevron-down.svg") center / contain no-repeat;
+    position: relative;
+    transition: rotate 300ms;
+
+    [aria-expanded="true"] & {
+      rotate: 180deg;
+    }
+  }
+
+  /* NavigationMenuContent / Popup: rounded-lg, shadow, ring, p-1, zooming in from 90% over
+  /* 0.35s on base-ui's ease. */
+  .ui-navigation-menu__content {
+    box-shadow: var(--shadow-sm), 0 0 0 1px var(--ui-popup-ring);
+    padding: 0.25rem;
+    scale: 0.9;
+    transition: display 350ms allow-discrete, overlay 350ms allow-discrete, opacity 350ms cubic-bezier(0.22, 1, 0.36, 1), scale 350ms cubic-bezier(0.22, 1, 0.36, 1);
+
+    @starting-style {
+      &:popover-open {
+        scale: 0.9;
+        translate: 0 0;
+      }
+    }
+  }
+
+  /* NavigationMenuLink: flex gap-2 rounded-lg p-2 text-sm (rounded-md inside the content), muted
+  /* on hover and focus, half muted while it's the current page. */
+  .ui-navigation-menu__link {
+    align-items: center;
+    border-radius: var(--radius-lg);
+    color: inherit;
+    display: flex;
+    font-size: var(--text-sm);
+    gap: 0.5rem;
+    line-height: 1.25rem;
+    outline: none;
+    padding: 0.5rem;
+    text-decoration: none;
+    transition: background-color 150ms, box-shadow 150ms;
+
+    :is(svg, .icon) {
+      --icon-size: 1rem;
+
+      block-size: 1rem;
+      flex-shrink: 0;
+      inline-size: 1rem;
+    }
+
+    &:is([aria-current="page"], [data-active]) {
+      background-color: color-mix(in oklch, var(--muted) 50%, transparent);
+    }
+
+    &:is(:hover, :focus) {
+      background-color: var(--muted);
+    }
+
+    &:focus-visible {
+      box-shadow: var(--ring-focus);
+    }
+
+    .ui-navigation-menu__content & {
+      border-radius: var(--radius-md);
+    }
+
+    /* A title over a description, as the docs' examples lay them out. */
+    &:has(.ui-navigation-menu__link-title) {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+  }
+
+  .ui-navigation-menu__link-title {
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .ui-navigation-menu__link-description {
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    color: var(--muted-foreground);
+    display: -webkit-box;
+    overflow: hidden;
+  }
+
+  /* PopoverContent (base-nova): w-72, flex-col gap-2.5, rounded-lg, p-2.5, text-sm. */
+  .ui-popover {
+    flex-direction: column;
+    gap: 0.625rem;
+    inline-size: 18rem;
+    max-inline-size: calc(100vw - 1rem);
+    padding: 0.625rem;
+
+    &:popover-open {
+      display: flex;
+    }
+  }
+
+  .ui-popover__header {
+    display: flex;
+    flex-direction: column;
+    font-size: var(--text-sm);
+    gap: 0.125rem;
+  }
+
+  .ui-popover__title {
+    font-size: inherit;
+    font-weight: 500;
+    line-height: 1.25rem;
+    margin: 0;
+  }
+
+  .ui-popover__description {
+    color: var(--muted-foreground);
+    margin: 0;
+  }
+
+  /* HoverCardContent (base-nova): w-64, rounded-lg, p-2.5, text-sm. */
+  .ui-hover-card {
+    inline-size: 16rem;
+    max-inline-size: calc(100vw - 1rem);
+    padding: 0.625rem;
+  }
+
+  /* Tooltip (base-nova): bg-foreground text-background, rounded-md, px-3 py-1.5, text-xs, w-fit
+  /* max-w-xs, 4px from its trigger with a 10px arrow turned 45°; shown at once (the provider's
+  /* delay is 0), fading and zooming in while it slides 0.5rem from the trigger. */
   .ui-tooltip {
     display: inline-flex;
     position: relative;
   }
 
   .ui-tooltip__content {
+    --ui-tooltip-at: -50% 0;
+    --ui-tooltip-from: -50% 0.5rem;
+
+    align-items: center;
     background-color: var(--foreground);
     border-radius: var(--radius-md);
     color: var(--background);
-    font-size: var(--text-x-small);
+    display: inline-flex;
+    font-size: var(--text-xs);
+    font-weight: 400;
+    gap: 0.375rem;
     inline-size: max-content;
-    inset: auto auto calc(100% + 0.375rem) 50%;
+    inset: auto auto calc(100% + 0.25rem) 50%;
+    line-height: 1rem;
     max-inline-size: 20rem;
     opacity: 0;
     padding: 0.375rem 0.75rem;
     pointer-events: none;
     position: absolute;
     scale: 0.95;
-    transition: opacity 100ms, scale 100ms;
-    translate: -50% 0;
+    transform-origin: bottom;
+    transition: opacity 150ms, scale 150ms, translate 150ms;
+    translate: var(--ui-tooltip-from);
     z-index: var(--z-tooltip);
 
-    .ui-tooltip:is(:hover, :focus-within) & {
+    .ui-tooltip:is(:hover, :has(:focus-visible)) & {
       opacity: 1;
       scale: 1;
-      transition-delay: 300ms;
+      translate: var(--ui-tooltip-at);
+    }
+
+    /* The arrow: size-2.5, rounded 2px, its centre 2px inside the edge. */
+    &::after {
+      background-color: inherit;
+      block-size: 0.625rem;
+      border-radius: 2px;
+      content: "";
+      inline-size: 0.625rem;
+      inset: auto auto -0.625rem 50%;
+      position: absolute;
+      rotate: 45deg;
+      translate: -50% calc(-50% - 2px);
+      z-index: -1;
+    }
+
+    &:has(.ui-kbd) {
+      padding-inline-end: 0.375rem;
+    }
+
+    .ui-kbd {
+      border-radius: var(--radius-sm);
+      isolation: isolate;
+      position: relative;
     }
   }
 
   .ui-tooltip--bottom .ui-tooltip__content {
-    inset: calc(100% + 0.375rem) auto auto 50%;
+    --ui-tooltip-from: -50% -0.5rem;
+
+    inset: calc(100% + 0.25rem) auto auto 50%;
+    transform-origin: top;
+
+    &::after {
+      inset: 0.25rem auto auto 50%;
+    }
   }
 
-  /* Toast (sonner), top centre: the bottom right is the notification bell's. The flash partial
-  /* (layouts/shared/_flash) renders one per notice or alert. */
+  .ui-tooltip--left .ui-tooltip__content,
+  .ui-tooltip--right .ui-tooltip__content {
+    --ui-tooltip-at: 0 -50%;
+
+    &::after {
+      translate: 0 -50%;
+    }
+  }
+
+  .ui-tooltip--left .ui-tooltip__content {
+    --ui-tooltip-from: 0.5rem -50%;
+
+    inset: 50% calc(100% + 0.25rem) auto auto;
+    transform-origin: right;
+
+    &::after {
+      inset: 50% -0.25rem auto auto;
+    }
+  }
+
+  .ui-tooltip--right .ui-tooltip__content {
+    --ui-tooltip-from: -0.5rem -50%;
+
+    inset: 50% auto auto calc(100% + 0.25rem);
+    transform-origin: left;
+
+    &::after {
+      inset: 50% auto auto -0.25rem;
+    }
+  }
+
+  /* Toast (sonner, with shadcn's options): 356px wide, bg-popover with a border, rounded-2xl,
+  /* p-4, 13px type, the icon 16px; sonner's own shadow. The toaster sits top centre, as both
+  /* apps keep the bottom right for other things; the --bottom-right modifier is sonner's
+  /* default spot. The flash partial renders one per notice or alert. */
   .ui-toaster {
+    --ui-toast-from: 0 -0.5rem;
+
     display: grid;
-    gap: 0.5rem;
-    inline-size: min(22rem, calc(100vw - 2rem));
+    gap: 0.875rem;
+    inline-size: min(22.25rem, calc(100vw - 2rem));
     inset: calc(1rem + var(--custom-safe-inset-top, 0px)) auto auto 50%;
     pointer-events: none;
     position: fixed;
     translate: -50% 0;
     z-index: var(--z-flash);
+  }
+
+  .ui-toaster--top-right {
+    inset: calc(1.5rem + var(--custom-safe-inset-top, 0px)) 1.5rem auto auto;
+    translate: none;
+  }
+
+  .ui-toaster--bottom-right,
+  .ui-toaster--bottom-center {
+    --ui-toast-from: 0 0.5rem;
+
+    align-content: end;
+  }
+
+  .ui-toaster--bottom-right {
+    inset: auto 1.5rem 1.5rem auto;
+    translate: none;
+  }
+
+  .ui-toaster--bottom-center {
+    inset: auto auto 1.5rem 50%;
   }
 
   .ui-toast {
@@ -448,19 +1384,23 @@
     animation: ui-toast 4.4s ease-out both;
     background-color: var(--popover);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius-2xl);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
     color: var(--popover-foreground);
     display: flex;
-    font-size: var(--text-normal);
-    gap: 0.5rem;
+    font-size: 0.8125rem;
+    gap: 0.375rem;
+    inline-size: 100%;
+    line-height: 1.5;
     padding: 1rem;
     pointer-events: auto;
 
     :is(svg, .icon) {
       --icon-size: 1rem;
 
+      block-size: 1rem;
       flex-shrink: 0;
+      inline-size: 1rem;
     }
 
     &:hover {
@@ -468,13 +1408,66 @@
     }
   }
 
+  /* Sonner's [data-icon]: 16px, pulled 3px out and 4px clear of the text. */
+  .ui-toast__icon,
+  .ui-toast :is(svg, .icon):not(button *, a *, .ui-toast__content *) {
+    margin-inline: -3px 4px;
+  }
+
+  .ui-toast__content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-inline-size: 0;
+  }
+
+  .ui-toast__title {
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  .ui-toast__description {
+    color: color-mix(in oklch, var(--popover-foreground) 80%, transparent);
+    font-weight: 400;
+    line-height: 1.4;
+  }
+
+  /* Sonner's action and cancel buttons: 24px tall, 12px medium type, rounded 4px. */
+  .ui-toast__action,
+  .ui-toast__cancel {
+    background-color: var(--popover-foreground);
+    block-size: 1.5rem;
+    border: 0;
+    border-radius: var(--radius-sm);
+    color: var(--popover);
+    cursor: pointer;
+    flex-shrink: 0;
+    font: inherit;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    margin-inline-start: auto;
+    padding: 0 0.5rem;
+  }
+
+  .ui-toast__cancel {
+    background-color: color-mix(in oklch, var(--popover-foreground) 8%, transparent);
+    color: var(--popover-foreground);
+  }
+
+  .ui-toast__action + .ui-toast__cancel,
+  .ui-toast__cancel + .ui-toast__action {
+    margin-inline-start: 0;
+  }
+
+  /* Kept from 0.1.0: an error in the destructive colour. */
   .ui-toast--error {
     color: var(--destructive);
   }
 
   @keyframes ui-toast {
-    0% { opacity: 0; translate: 0 -0.5rem; }
+    0% { opacity: 0; translate: var(--ui-toast-from); }
     5%, 95% { opacity: 1; translate: 0 0; }
-    100% { opacity: 0; translate: 0 -0.5rem; }
+    100% { opacity: 0; translate: var(--ui-toast-from); }
   }
 }

@@ -1,0 +1,23 @@
+/* Aspect ratio (shadcn/ui): a box held to a ratio, its image or video filling it.
+/*   <div class="ui-aspect-ratio ui-aspect-ratio--video"><img src="…" alt="…"></div>
+/* Ratios: --square (1), --video (16/9, the default), --4-3, --3-2, --21-9, --portrait (3/4);
+/* any other through the --ratio property (ui_aspect_ratio(1.5) sets it). */
+@layer ui {
+  .ui-aspect-ratio {
+    aspect-ratio: var(--ratio, 16 / 9);
+    position: relative;
+
+    :is(img, video, iframe, picture) {
+      block-size: 100%;
+      inline-size: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .ui-aspect-ratio--square { --ratio: 1; }
+  .ui-aspect-ratio--video { --ratio: 16 / 9; }
+  .ui-aspect-ratio--4-3 { --ratio: 4 / 3; }
+  .ui-aspect-ratio--3-2 { --ratio: 3 / 2; }
+  .ui-aspect-ratio--21-9 { --ratio: 21 / 9; }
+  .ui-aspect-ratio--portrait { --ratio: 3 / 4; }
+}

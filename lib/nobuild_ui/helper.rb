@@ -14,8 +14,8 @@ module NobuildUi
     include Helpers::Overlays
 
     BUTTON_VARIANTS = %i[default destructive outline secondary ghost link].freeze
-    BUTTON_SIZES = %i[default sm lg icon icon_sm icon_lg].freeze
-    BADGE_VARIANTS = %i[default secondary destructive outline positive warning info negative neutral count].freeze
+    BUTTON_SIZES = %i[default xs sm lg icon icon_xs icon_sm icon_lg].freeze
+    BADGE_VARIANTS = %i[default secondary destructive outline ghost link positive warning info negative neutral count].freeze
 
     # Every stylesheet of the kit, tokens first, for the layout's <head> before the app's own:
     #   <%= nobuild_ui_stylesheet_tags %>   (font: false leaves Inter out)
@@ -65,18 +65,20 @@ module NobuildUi
     def ui_kbd(*keys)
       return tag.kbd(keys.first, class: "ui-kbd") if keys.one?
 
-      tag.span(safe_join(keys.map { tag.kbd(it, class: "ui-kbd") }), class: "ui-kbd-group")
+      tag.kbd(safe_join(keys.map { tag.kbd(it, class: "ui-kbd") }), class: "ui-kbd-group")
     end
 
     # Initials in a circle, or the image when there is one: ui_avatar("Ted Martin", size: :sm).
-    def ui_avatar(name, image: nil, size: nil, **options)
+    # badge: true adds shadcn's AvatarBadge (a dot at the corner); a string puts it in the dot.
+    def ui_avatar(name, image: nil, size: nil, badge: nil, **options)
       classes = class_names("ui-avatar", "ui-avatar--#{size}" => size, options.delete(:class) => true)
       tag.span(class: classes, title: name, **options) do
-        if image
-          image_tag(image, alt: name)
+        face = if image
+          image_tag(image, alt: name, class: "ui-avatar__image")
         else
-          name.to_s.split.first(2).map { it[0] }.join.upcase
+          tag.span(name.to_s.split.first(2).map { it[0] }.join.upcase, class: "ui-avatar__fallback")
         end
+        safe_join([ face, (tag.span(badge == true ? nil : badge, class: "ui-avatar__badge") if badge) ].compact)
       end
     end
 
@@ -141,7 +143,7 @@ module NobuildUi
     private
       def ui_icon_and_content(text, icon, &block)
         parts = []
-        parts << icon_tag(icon) if icon && respond_to?(:icon_tag)
+        parts << icon_tag(icon, data: { icon: "inline-start" }) if icon && respond_to?(:icon_tag)
         parts << (block ? capture(&block) : text)
         safe_join(parts.compact)
       end

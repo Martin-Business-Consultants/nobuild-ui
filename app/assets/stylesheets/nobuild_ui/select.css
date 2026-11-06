@@ -1,0 +1,95 @@
+/* Select (shadcn/ui select, base-nova): the trigger (ui-select__trigger, in forms.css) opens
+/* a listbox popover drawn as SelectContent: the menu's popup (ui-menu: bg-popover, ring-1
+/* ring-foreground/10, rounded-lg, shadow-md, fading and zooming in) at least min-w-36 and as
+/* wide as the trigger, its items SelectItem: px-1.5 py-1 pr-8 text-sm rounded-md, the accent
+/* on focus, the chosen one checked on the right. ui_select_menu builds it; the ui--popover
+/* controller places it and gives it arrow keys and type-ahead, ui--select writes the choice
+/* into the hidden input and the trigger. A native <select class="ui-select"> needs neither.
+/*
+/*   <div class="ui-select-menu" data-controller="ui--popover ui--select">
+/*     <input type="hidden" name="fruit" value="apple" data-ui--select-target="input">
+/*     <button type="button" class="ui-select__trigger [ui-select__trigger--sm]"
+/*             popovertarget="fruit-list" aria-haspopup="listbox" aria-expanded="false"
+/*             [data-placeholder]>
+/*       <span class="ui-select__value" data-ui--select-target="value">Apple</span>
+/*       <span class="ui-select__icon" aria-hidden="true"></span>
+/*     </button>
+/*     <div id="fruit-list" popover role="listbox" class="ui-menu ui-select__content"
+/*          data-ui--popover-target="popover">
+/*       <div class="ui-select__group" role="group">
+/*         <div class="ui-select__label">Fruits</div>
+/*         <button type="button" role="option" class="ui-menu__item ui-select__item"
+/*                 data-value="apple" aria-selected="true">Apple</button>…
+/*       </div>
+/*       <hr class="ui-select__separator">
+/*     </div>
+/*   </div>
+/*
+/* The content sits under the trigger (shadcn's alignItemWithTrigger={false}); Base UI's
+/* default of laying the chosen item over the trigger isn't reproduced. */
+@layer ui {
+  .ui-select-menu {
+    display: inline-flex;
+    position: relative;
+  }
+
+  .ui-select__content {
+    min-inline-size: 9rem;
+  }
+
+  /* SelectGroup: scroll-my-1 (the content's p-1 stands in for the group's). */
+  .ui-select__group {
+    display: flex;
+    flex-direction: column;
+    scroll-margin-block: 0.25rem;
+  }
+
+  /* SelectLabel: text-muted-foreground px-1.5 py-1 text-xs (not bold, unlike the menu's). */
+  .ui-select__label {
+    color: var(--muted-foreground);
+    font-size: var(--text-xs);
+    font-weight: 400;
+    line-height: 1rem;
+    padding: 0.25rem 0.375rem;
+  }
+
+  /* SelectItem: the menu item's metrics, room for the check, which shows on the chosen one.
+  /* aria-selected marks the chosen item here, not the highlighted one. */
+  .ui-menu__item.ui-select__item {
+    gap: 0.375rem;
+    padding-inline-end: 2rem;
+
+    &[aria-selected="true"]:not(:hover, :focus-visible) {
+      background: none;
+      color: inherit;
+    }
+
+    &[aria-selected="true"]::after {
+      background-color: currentColor;
+      block-size: 1rem;
+      content: "";
+      inline-size: 1rem;
+      inset-inline-end: 0.5rem;
+      mask: url("check.svg") center / contain no-repeat;
+      pointer-events: none;
+      position: absolute;
+    }
+  }
+
+  .ui-select__item-text {
+    display: flex;
+    flex: 1;
+    flex-shrink: 0;
+    gap: 0.5rem;
+    white-space: nowrap;
+  }
+
+  /* SelectSeparator: bg-border -mx-1 my-1 h-px. */
+  .ui-select__separator {
+    background-color: var(--border);
+    block-size: 1px;
+    border: 0;
+    margin: 0.25rem -0.25rem;
+    pointer-events: none;
+  }
+}

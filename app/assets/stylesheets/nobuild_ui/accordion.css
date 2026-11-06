@@ -1,0 +1,135 @@
+/* Accordion and collapsible (shadcn/ui), base-nova, on native <details> / <summary>: no
+/* JavaScript. Items that share a name="" open one at a time (shadcn's default); leave name off
+/* to let several stay open (multiple).
+/*
+/*   <div class="ui-accordion">
+/*     <details class="ui-accordion__item" name="faq" open>
+/*       <summary class="ui-accordion__trigger">Is it accessible?</summary>
+/*       <div class="ui-accordion__content">
+/*         <p>Yes. It adheres to the WAI-ARIA design pattern.</p>
+/*       </div>
+/*     </details>
+/*   </div>
+/*   The trigger draws its own chevron (down while closed, up while open). Opening and closing
+/*   slide where the browser animates ::details-content.
+/*
+/*   Collapsible: no look of its own, as in shadcn; the trigger is whatever is in the summary.
+/*   <details class="ui-collapsible">
+/*     <summary class="ui-collapsible__trigger ui-button ui-button--ghost ui-button--sm">Show 3 more</summary>
+/*     <div class="ui-collapsible__content">…</div>
+/*   </details> */
+@layer ui {
+  .ui-accordion {
+    display: flex;
+    flex-direction: column;
+    inline-size: 100%;
+  }
+
+  .ui-accordion__item {
+    interpolate-size: allow-keywords;
+
+    &:not(:last-child) {
+      border-block-end: 1px solid var(--border);
+    }
+
+    &::details-content {
+      block-size: 0;
+      overflow: hidden;
+      transition: block-size 200ms ease-out, content-visibility 200ms ease-out allow-discrete;
+    }
+
+    &[open]::details-content {
+      block-size: auto;
+    }
+
+    &[aria-disabled="true"] {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  }
+
+  .ui-accordion__trigger {
+    align-items: flex-start;
+    border: 1px solid transparent;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    display: flex;
+    flex: 1;
+    font-size: 0.875rem;
+    font-weight: 500;
+    justify-content: space-between;
+    line-height: 1.25rem;
+    list-style: none;
+    outline: none;
+    padding-block: 0.625rem;
+    position: relative;
+    text-align: start;
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    /* The chevron (lucide chevron-down, then chevron-up while open). */
+    &::after {
+      background-color: var(--muted-foreground);
+      block-size: 1rem;
+      content: "";
+      flex-shrink: 0;
+      inline-size: 1rem;
+      margin-inline-start: auto;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+      pointer-events: none;
+    }
+
+    .ui-accordion__item[open] &::after {
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m18 15-6-6-6 6'/%3E%3C/svg%3E");
+    }
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    &:focus-visible {
+      border-color: var(--ring);
+      box-shadow: var(--ring-focus);
+    }
+
+    &[aria-disabled="true"] {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  }
+
+  .ui-accordion__content {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    padding-block: 0 0.625rem;
+
+    p {
+      margin: 0;
+    }
+
+    p:not(:last-child) {
+      margin-block-end: 1rem;
+    }
+
+    a {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+
+      &:hover { color: var(--foreground); }
+    }
+  }
+
+  /* Collapsible */
+
+  .ui-collapsible__trigger {
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+}

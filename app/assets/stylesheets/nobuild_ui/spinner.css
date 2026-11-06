@@ -1,0 +1,32 @@
+/* Spinner (shadcn/ui): lucide's loader-2, turning, at 1rem.
+/*   <span class="ui-spinner" role="status" aria-label="Loading"></span>
+/* or on an inline <svg class="ui-spinner">, or on the app's own icon (<span class="icon
+/* ui-spinner">, which keeps its own glyph). aria-hidden instead when the words beside it say
+/* what is loading. Inside a ui-button it sits where the button's icon would. */
+@layer ui {
+  .ui-spinner {
+    --icon-size: 1rem;
+
+    animation: ui-spin 1s linear infinite;
+    block-size: 1rem;
+    display: inline-block;
+    flex-shrink: 0;
+    inline-size: 1rem;
+  }
+
+  /* With no glyph of its own, it draws lucide's loader-2. */
+  .ui-spinner:not(svg, .icon) {
+    background-color: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a9 9 0 1 1-6.219-8.56'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+
+  @keyframes ui-spin {
+    to { rotate: 360deg; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ui-spinner {
+      animation-duration: 3s;
+    }
+  }
+}

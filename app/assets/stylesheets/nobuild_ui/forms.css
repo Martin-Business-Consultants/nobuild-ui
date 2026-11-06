@@ -1,40 +1,133 @@
-/* Form controls (shadcn/ui input, textarea, native-select, label, checkbox, radio-group,
-/* switch, field). All native elements: no JavaScript.
+/* Form controls as shadcn/ui's docs draw them (base-nova): input, textarea, label, field,
+/* input-group, native-select, the select trigger, checkbox, radio-group and switch. All
+/* native elements: no JavaScript. Select (a popover listbox), combobox and slider have files
+/* of their own.
 /*
-/*   <div class="ui-field">
-/*     <label class="ui-label" for="name">Name</label>
+/*   Input, textarea, native select (the select's own chevron, or a wrapper with an icon):
+/*   <input class="ui-input">
+/*   <textarea class="ui-textarea"></textarea>
+/*   <select class="ui-select">…</select>                           (w-full, as forms use it)
+/*   <div class="ui-native-select [ui-native-select--sm]">           (shadcn's NativeSelect)
+/*     <select class="ui-select">…</select>
+/*     <span class="ui-native-select__icon" aria-hidden="true"></span>
+/*   </div>
+/*
+/*   Checkbox, radio group, switch:
+/*   <input type="checkbox" class="ui-checkbox">
+/*   <div class="ui-radio-group" role="radiogroup"><input type="radio" class="ui-radio">…</div>
+/*   <input type="checkbox" role="switch" class="ui-switch [ui-switch--sm]">
+/*
+/*   Field (Field, FieldLabel, FieldDescription, FieldError):
+/*   <div class="ui-field [ui-field--horizontal | ui-field--responsive]" [data-invalid="true"]>
+/*     <label class="ui-label" for="name">Name</label>        (or ui-field__label)
 /*     <input class="ui-input" id="name">
 /*     <p class="ui-field__description">Shown on invoices.</p>
 /*     <p class="ui-field__error">can't be blank</p>
 /*   </div>
 /*
-/*   <select class="ui-select">…</select>
-/*   <textarea class="ui-textarea"></textarea>
-/*   <input type="checkbox" class="ui-checkbox">
-/*   <input type="radio" class="ui-radio">
-/*   <input type="checkbox" role="switch" class="ui-switch">
+/*   A checkbox, radio or switch beside its label and description (horizontal Field with
+/*   FieldContent), and the same in a bordered "choice card" (FieldLabel around a Field):
+/*   <div class="ui-field ui-field--horizontal">
+/*     <input type="checkbox" class="ui-checkbox" id="terms">
+/*     <div class="ui-field__content">
+/*       <label class="ui-field__label" for="terms">Accept terms</label>
+/*       <p class="ui-field__description">…</p>
+/*     </div>
+/*   </div>
+/*   <label class="ui-field ui-field--inline [ui-field--end] [ui-field--card]">
+/*     <input type="checkbox" role="switch" class="ui-switch">
+/*     <span class="ui-label">Email me</span>
+/*     <span class="ui-field__description">…</span>
+/*   </label>
 /*
-/* aria-invalid="true" on a control draws it in the destructive colour. */
+/*   FieldSet, FieldLegend, FieldGroup, FieldTitle, FieldSeparator:
+/*   <fieldset class="ui-fieldset">                               (alias ui-field-set)
+/*     <legend class="ui-field__legend [ui-field__legend--label]">Address</legend>
+/*     <p class="ui-field__description">…</p>
+/*     <div class="ui-field-group">
+/*       <div class="ui-field">…</div>
+/*       <div class="ui-field__separator"><span class="ui-field__separator-content">Or</span></div>
+/*       <div class="ui-field">…</div>
+/*     </div>
+/*   </fieldset>
+/*   <div class="ui-field__title">Title</div>
+/*
+/*   Input group (InputGroup, InputGroupAddon, InputGroupText, InputGroupButton):
+/*   <div class="ui-input-group">
+/*     <span class="ui-input-group__addon">[icon]</span>       (inline-start, the default)
+/*     <input class="ui-input">                                 (or textarea.ui-textarea)
+/*     <span class="ui-input-group__addon ui-input-group__addon--inline-end">
+/*       <span class="ui-input-group__text">USD</span>
+/*       <button class="ui-button ui-button--ghost ui-input-group__button
+/*                      [ui-input-group__button--icon-xs | --icon-sm | --sm]">Copy</button>
+/*     </span>
+/*     (or --block-start / --block-end for a row above or below a textarea)
+/*   </div>
+/*
+/* aria-invalid="true" on a control draws it in the destructive colour, with its ring. */
 @layer ui {
+  /* What changes between light and dark (shadcn's dark: variants). */
+  :root {
+    --ui-control-bg: transparent;
+    --ui-control-bg-hover: transparent;
+    --ui-control-bg-disabled: color-mix(in oklch, var(--input) 50%, transparent);
+    --ui-control-invalid-border: var(--destructive);
+    --ui-control-invalid-ring: 0 0 0 3px color-mix(in oklch, var(--destructive) 20%, transparent);
+    --ui-switch-off: var(--input);
+    --ui-switch-thumb: var(--background);
+    --ui-switch-thumb-checked: var(--background);
+    --ui-choice-checked-bg: color-mix(in oklch, var(--primary) 5%, transparent);
+    --ui-choice-checked-border: color-mix(in oklch, var(--primary) 30%, transparent);
+    /* lucide chevron-down in --muted-foreground (a background image can't read a token). */
+    --ui-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23737373' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+
+  :root[data-theme="dark"] {
+    --ui-control-bg: color-mix(in oklch, var(--input) 30%, transparent);
+    --ui-control-bg-hover: color-mix(in oklch, var(--input) 50%, transparent);
+    --ui-control-bg-disabled: color-mix(in oklch, var(--input) 80%, transparent);
+    --ui-control-invalid-border: color-mix(in oklch, var(--destructive) 50%, transparent);
+    --ui-control-invalid-ring: 0 0 0 3px color-mix(in oklch, var(--destructive) 40%, transparent);
+    --ui-switch-off: color-mix(in oklch, var(--input) 80%, transparent);
+    --ui-switch-thumb: var(--foreground);
+    --ui-switch-thumb-checked: var(--primary-foreground);
+    --ui-choice-checked-bg: color-mix(in oklch, var(--primary) 10%, transparent);
+    --ui-choice-checked-border: color-mix(in oklch, var(--primary) 20%, transparent);
+    --ui-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a1a1a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]),
+    :root[data-theme="system"] {
+      --ui-control-bg: color-mix(in oklch, var(--input) 30%, transparent);
+      --ui-control-bg-hover: color-mix(in oklch, var(--input) 50%, transparent);
+      --ui-control-bg-disabled: color-mix(in oklch, var(--input) 80%, transparent);
+      --ui-control-invalid-border: color-mix(in oklch, var(--destructive) 50%, transparent);
+      --ui-control-invalid-ring: 0 0 0 3px color-mix(in oklch, var(--destructive) 40%, transparent);
+      --ui-switch-off: color-mix(in oklch, var(--input) 80%, transparent);
+      --ui-switch-thumb: var(--foreground);
+      --ui-switch-thumb-checked: var(--primary-foreground);
+      --ui-choice-checked-bg: color-mix(in oklch, var(--primary) 10%, transparent);
+      --ui-choice-checked-border: color-mix(in oklch, var(--primary) 20%, transparent);
+      --ui-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a1a1a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    }
+  }
+
+  /* Input, textarea, native select and the select trigger (base-nova): border-input,
+  /* rounded-lg, bg-transparent (dark: input/30), no shadow, transition-colors, a 3px ring
+  /* and border-ring on focus, the destructive border and ring while aria-invalid. */
   .ui-input,
   .ui-textarea,
-  .ui-select {
-    background-color: transparent;
+  .ui-select,
+  .ui-select__trigger {
+    background-color: var(--ui-control-bg);
     border: 1px solid var(--input);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-xs);
+    border-radius: var(--radius-control, var(--radius-lg));
     color: var(--foreground);
     font: inherit;
-    /* text-base md:text-sm: 16px on phones so iOS doesn't zoom in. */
-    font-size: max(16px, var(--text-normal));
-    inline-size: 100%;
     min-inline-size: 0;
     outline: none;
-    transition: border-color 150ms, box-shadow 150ms;
-
-    @media (min-width: 768px) {
-      font-size: var(--text-normal);
-    }
+    transition: color 150ms, background-color 150ms, border-color 150ms, box-shadow 150ms;
 
     &::placeholder {
       color: var(--muted-foreground);
@@ -42,7 +135,7 @@
 
     &:focus-visible {
       border-color: var(--ring);
-      box-shadow: var(--shadow-xs), var(--ring-focus);
+      box-shadow: var(--ring-focus);
     }
 
     &:disabled {
@@ -52,11 +145,8 @@
 
     &[aria-invalid="true"],
     .field_with_errors & {
-      border-color: var(--destructive);
-
-      &:focus-visible {
-        box-shadow: var(--shadow-xs), var(--ring-invalid);
-      }
+      border-color: var(--ui-control-invalid-border);
+      box-shadow: var(--ui-control-invalid-ring);
     }
 
     &:-webkit-autofill {
@@ -65,22 +155,43 @@
     }
   }
 
+  /* text-base md:text-sm: 16px on phones so iOS doesn't zoom in. */
+  .ui-input,
+  .ui-textarea {
+    font-size: var(--text-base);
+    inline-size: 100%;
+    line-height: 1.5rem;
+
+    @media (min-width: 768px) {
+      font-size: var(--text-sm);
+      line-height: 1.25rem;
+    }
+
+    &:disabled {
+      background-color: var(--ui-control-bg-disabled);
+      pointer-events: none;
+    }
+  }
+
   .ui-input {
-    block-size: 2.25rem;
-    padding: 0.25rem 0.75rem;
+    block-size: 2rem;
+    padding: 0.25rem 0.625rem;
 
     &[type="file"] {
-      color: var(--muted-foreground);
-      padding-block: 0.375rem;
+      padding-block: 0.25rem;
 
       &::file-selector-button {
         background: transparent;
+        block-size: 1.5rem;
         border: 0;
         color: var(--foreground);
+        display: inline-flex;
         font: inherit;
-        font-size: var(--text-normal);
+        font-size: var(--text-sm);
         font-weight: 500;
+        line-height: 1.25rem;
         margin-inline-end: 0.5rem;
+        padding: 0;
       }
     }
 
@@ -89,78 +200,260 @@
     }
   }
 
+  /* Not shadcn's (Input has one size); as tall as the small select. */
+  .ui-input--sm {
+    block-size: 1.75rem;
+  }
+
   .ui-textarea {
     display: flex;
     field-sizing: content;
     min-block-size: 4rem;
-    padding: 0.5rem 0.75rem;
+    padding: 0.5rem 0.625rem;
     resize: vertical;
   }
 
+  /* The native select, as NativeSelect draws it: h-8, py-1 pr-8 pl-2.5, text-sm, the
+  /* chevron 1rem in from right-2.5. Hover lightens it in dark mode. */
   .ui-select {
     -webkit-appearance: none;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-image: var(--ui-select-chevron);
     background-position: right 0.625rem center;
     background-repeat: no-repeat;
     background-size: 1rem;
-    block-size: 2.25rem;
+    block-size: 2rem;
     cursor: pointer;
-    padding: 0.25rem 2.25rem 0.25rem 0.75rem;
+    font-size: var(--text-sm);
+    inline-size: 100%;
+    line-height: 1.25rem;
+    padding: 0.25rem 2rem 0.25rem 0.625rem;
     text-overflow: ellipsis;
+    user-select: none;
     white-space: nowrap;
 
-    option {
+    &:hover:not(:disabled) {
+      background-color: var(--ui-control-bg-hover);
+    }
+
+    &:disabled {
+      pointer-events: none;
+    }
+
+    /* A blank first option that can't be chosen again is a placeholder: muted, as
+    /* data-placeholder draws SelectValue. */
+    &:required:has(option[value=""]:checked),
+    &:has(option[value=""]:is([disabled], [hidden]):checked) {
+      color: var(--muted-foreground);
+    }
+
+    option,
+    optgroup {
       background-color: var(--popover);
       color: var(--popover-foreground);
     }
   }
 
-  .ui-input--sm,
   .ui-select--sm {
-    block-size: 2rem;
+    block-size: 1.75rem;
+    border-radius: var(--radius-control, min(var(--radius-md), 0.625rem));
+    padding-block: 0.125rem;
   }
 
+  /* NativeSelect: a w-fit wrapper whose icon stands in for the select's own chevron. */
+  .ui-native-select {
+    display: inline-block;
+    inline-size: fit-content;
+    position: relative;
+
+    &:has(select:disabled) {
+      opacity: 0.5;
+    }
+
+    .ui-select {
+      background-image: none;
+
+      &:disabled {
+        opacity: 1;
+      }
+    }
+  }
+
+  .ui-native-select--sm .ui-select {
+    block-size: 1.75rem;
+    border-radius: var(--radius-control, min(var(--radius-md), 0.625rem));
+    padding-block: 0.125rem;
+  }
+
+  .ui-native-select__icon {
+    background-color: var(--muted-foreground);
+    block-size: 1rem;
+    inline-size: 1rem;
+    inset-inline-end: 0.625rem;
+    mask: url("chevron-down.svg") center / contain no-repeat;
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    translate: 0 -50%;
+    user-select: none;
+  }
+
+  /* SelectTrigger (the button of ui_select_menu, select.css has its popup): w-fit,
+  /* gap-1.5, py-2 pr-2 pl-2.5, h-8 (sm: h-7), the chevron muted at 1rem. */
+  .ui-select__trigger {
+    align-items: center;
+    block-size: 2rem;
+    cursor: default;
+    display: inline-flex;
+    font-size: var(--text-sm);
+    gap: 0.375rem;
+    inline-size: fit-content;
+    justify-content: space-between;
+    line-height: 1.25rem;
+    padding: 0.5rem 0.5rem 0.5rem 0.625rem;
+    user-select: none;
+    white-space: nowrap;
+
+    &:hover:not(:disabled) {
+      background-color: var(--ui-control-bg-hover);
+    }
+
+    &[data-placeholder] .ui-select__value {
+      color: var(--muted-foreground);
+    }
+
+    :is(svg, .icon) {
+      --icon-size: 1rem;
+
+      block-size: 1rem;
+      flex-shrink: 0;
+      inline-size: 1rem;
+      pointer-events: none;
+    }
+  }
+
+  .ui-select__trigger--sm {
+    block-size: 1.75rem;
+    border-radius: var(--radius-control, min(var(--radius-md), 0.625rem));
+  }
+
+  .ui-select__value {
+    align-items: center;
+    display: flex;
+    flex: 1;
+    gap: 0.375rem;
+    overflow: hidden;
+    text-align: start;
+    text-overflow: ellipsis;
+  }
+
+  .ui-select__icon {
+    background-color: var(--muted-foreground);
+    block-size: 1rem;
+    flex-shrink: 0;
+    inline-size: 1rem;
+    mask: url("chevron-down.svg") center / contain no-repeat;
+    pointer-events: none;
+  }
+
+  /* Label: flex items-center gap-2 text-sm leading-none font-medium select-none; faded beside
+  /* a disabled control. */
   .ui-label {
     align-items: center;
     display: flex;
-    font-size: var(--text-normal);
+    font-size: var(--text-sm);
     font-weight: 500;
     gap: 0.5rem;
     line-height: 1;
     user-select: none;
 
     &:has(+ :disabled),
-    .ui-field:has(:disabled) & {
+    :disabled + &,
+    .ui-field:has(:disabled) &,
+    .ui-field[data-disabled="true"] & {
       cursor: not-allowed;
       opacity: 0.5;
     }
   }
 
-  /* Field: a label, its control, a description and an error, stacked. */
+  /* Field: its parts stacked, gap-2 (vertical, the default). */
   .ui-field {
     display: grid;
-    text-align: start;
     gap: 0.5rem;
     min-inline-size: 0;
+    text-align: start;
+
+    &[data-invalid="true"] {
+      color: var(--destructive);
+    }
   }
 
-  /* A checkbox, radio or switch beside its label (and description). */
-  /* The control in one column, its label, description and error in the other. */
+  /* orientation="horizontal": in a row, centred, or from the top when it has FieldContent. */
+  .ui-field--horizontal {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+
+    &:has(.ui-field__content) {
+      align-items: flex-start;
+
+      :is(.ui-checkbox, .ui-radio) {
+        margin-block-start: 1px;
+      }
+    }
+
+    .ui-field__label {
+      flex: auto;
+    }
+  }
+
+  /* orientation="responsive": stacked, and in a row once its FieldGroup is 28rem wide. */
+  .ui-field--responsive {
+    display: flex;
+    flex-direction: column;
+  }
+
+  @container ui-field-group (min-width: 28rem) {
+    .ui-field--responsive {
+      align-items: center;
+      flex-direction: row;
+
+      &:has(.ui-field__content) {
+        align-items: flex-start;
+
+        :is(.ui-checkbox, .ui-radio) {
+          margin-block-start: 1px;
+        }
+      }
+
+      .ui-field__label {
+        flex: auto;
+      }
+    }
+  }
+
+  /* A checkbox, radio or switch beside its label (and description), with no FieldContent
+  /* wrapper: the control in one column, the rest stacked in the other, as horizontal Field
+  /* and FieldContent space them (gap-2, gap-0.5, leading-snug, the control mt-px). */
   .ui-field--inline {
     align-items: start;
-    column-gap: 0.75rem;
+    column-gap: 0.5rem;
     grid-template-columns: auto 1fr;
-    row-gap: 0.375rem;
+    row-gap: 0.125rem;
 
     :is(.ui-checkbox, .ui-radio, .ui-switch) {
       grid-column: 1;
       grid-row: 1 / span 3;
-      margin-block-start: 0.0625rem;
+      margin-block-start: 1px;
     }
 
-    :is(.ui-label, .ui-field__description, .ui-field__error) {
+    :is(.ui-label, .ui-field__label, .ui-field__title, .ui-field__description, .ui-field__error) {
       grid-column: 2;
+      line-height: 1.375;
+    }
+
+    .ui-field__description {
+      margin-block-start: 0;
     }
 
     &.ui-field--end {
@@ -170,53 +463,234 @@
         grid-column: 2;
       }
 
-      :is(.ui-label, .ui-field__description, .ui-field__error) {
+      :is(.ui-label, .ui-field__label, .ui-field__title, .ui-field__description, .ui-field__error) {
         grid-column: 1;
       }
     }
   }
 
-  /* A choice in a bordered box that highlights when it's on (shadcn's "choice card"). */
-  .ui-field--card {
+  /* A choice card: FieldLabel around a Field. rounded-lg border, p-2.5 on the field, muted
+  /* on hover, ringed while its control has keyboard focus, primary/5 and primary/30 checked
+  /* (dark: /10 and /20). The control inside drops its own ring. */
+  .ui-field--card,
+  .ui-field__label:has(.ui-field) {
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 1rem;
+    transition: color 150ms, background-color 150ms, border-color 150ms, box-shadow 150ms;
+
+    &:not(:has(:disabled, [data-disabled])):hover {
+      background-color: color-mix(in oklch, var(--muted) 50%, transparent);
+    }
 
     &:has(:checked) {
-      background-color: color-mix(in oklch, var(--primary) 5%, transparent);
+      background-color: var(--ui-choice-checked-bg);
+      border-color: var(--ui-choice-checked-border);
+    }
+
+    &:has(:focus-visible) {
+      border-color: var(--ring);
+      box-shadow: var(--ring-focus);
+    }
+
+    :is(.ui-checkbox, .ui-radio, .ui-switch):focus-visible {
+      box-shadow: none;
+    }
+
+    :is(.ui-checkbox, .ui-radio):not(:checked):focus-visible {
+      border-color: var(--input);
+    }
+
+    :is(.ui-checkbox, .ui-radio):checked:focus-visible {
       border-color: var(--primary);
+    }
+
+    .ui-switch:focus-visible {
+      border-color: transparent;
     }
   }
 
+  .ui-field--card {
+    padding: 0.625rem;
+  }
+
+  .ui-field__label:has(.ui-field) {
+    flex-direction: column;
+    inline-size: 100%;
+
+    .ui-field {
+      padding: 0.625rem;
+    }
+  }
+
+  /* FieldLabel: a label in a field, leading-snug; FieldTitle: the same, not a label. */
+  .ui-field__label,
+  .ui-field__title {
+    align-items: center;
+    display: flex;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    gap: 0.5rem;
+    inline-size: fit-content;
+    line-height: 1.375;
+    user-select: none;
+
+    .ui-field[data-disabled="true"] &,
+    .ui-field:has(:disabled) & {
+      opacity: 0.5;
+    }
+  }
+
+  .ui-field__label:has(.ui-field) {
+    align-items: stretch;
+  }
+
+  /* FieldContent: the label and description beside a control. */
+  .ui-field__content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.125rem;
+    line-height: 1.375;
+    min-inline-size: 0;
+  }
+
+  /* FieldDescription: muted text-sm leading-normal; pulled 0.25rem toward the label when
+  /* something follows it, links underlined. */
   .ui-field__description {
     color: var(--muted-foreground);
-    font-size: var(--text-normal);
+    font-size: var(--text-sm);
+    font-weight: 400;
+    line-height: 1.5;
     margin: 0;
+    text-align: start;
+
+    &:nth-last-child(2) {
+      margin-block-start: -0.25rem;
+    }
+
+    &:last-child {
+      margin-block-start: 0;
+    }
+
+    .ui-field--horizontal & {
+      text-wrap: balance;
+    }
+
+    a {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+
+      &:hover {
+        color: var(--primary);
+      }
+    }
   }
 
+  /* FieldError: text-destructive text-sm; several as a bulleted list. */
   .ui-field__error {
     color: var(--destructive);
-    font-size: var(--text-normal);
+    font-size: var(--text-sm);
+    font-weight: 400;
+    line-height: 1.25rem;
     margin: 0;
-  }
 
-  /* A group of fields, with a legend: shadcn's FieldSet. */
-  .ui-fieldset {
-    border: 0;
-    display: grid;
-    gap: 1.5rem;
-    margin: 0;
-    min-inline-size: 0;
-    padding: 0;
-
-    > legend {
-      font-size: var(--text-medium);
-      font-weight: 500;
-      margin-block-end: 0.75rem;
+    ul {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      list-style: disc;
+      margin: 0 0 0 1rem;
       padding: 0;
     }
   }
 
+  /* FieldSet: flex-col gap-4 (gap-3 around a checkbox or radio group). */
+  .ui-fieldset,
+  .ui-field-set {
+    border: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 0;
+    min-inline-size: 0;
+    padding: 0;
+
+    &:has(.ui-radio-group, .ui-field-group--checkbox, [data-slot="checkbox-group"]) {
+      gap: 0.75rem;
+    }
+  }
+
+  /* FieldLegend: mb-1.5 font-medium, text-base (variant legend) or text-sm (variant label).
+  /* A bare <legend> in a fieldset is the legend; one with ui-label is the label variant. */
+  .ui-field__legend,
+  .ui-fieldset legend,
+  .ui-field-set legend {
+    font-size: var(--text-base);
+    font-weight: 500;
+    line-height: 1.5rem;
+    margin-block-end: 0.375rem;
+    padding: 0;
+  }
+
+  .ui-field__legend--label,
+  .ui-fieldset legend.ui-label,
+  .ui-field-set legend.ui-label {
+    font-size: var(--text-sm);
+    line-height: 1.25rem;
+  }
+
+  .ui-field__legend:not(.ui-field__legend--label) + .ui-field__description {
+    margin-block-start: -0.375rem;
+  }
+
+  /* FieldGroup: fields stacked, gap-5 (a nested group gap-4, a checkbox group gap-3); the
+  /* container responsive fields measure. */
+  .ui-field-group {
+    container: ui-field-group / inline-size;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    inline-size: 100%;
+
+    .ui-field-group {
+      gap: 1rem;
+    }
+  }
+
+  .ui-field-group--checkbox,
+  .ui-field-group[data-slot="checkbox-group"] {
+    gap: 0.75rem;
+  }
+
+  /* FieldSeparator: a line through the middle of an h-5 row, with optional text on it. */
+  .ui-field__separator {
+    block-size: 1.25rem;
+    font-size: var(--text-sm);
+    line-height: 1.25rem;
+    margin-block: -0.5rem;
+    position: relative;
+
+    &::before {
+      background-color: var(--border);
+      block-size: 1px;
+      content: "";
+      inset-inline: 0;
+      position: absolute;
+      top: 50%;
+    }
+  }
+
+  .ui-field__separator-content {
+    background-color: var(--background);
+    color: var(--muted-foreground);
+    display: block;
+    inline-size: fit-content;
+    margin-inline: auto;
+    padding-inline: 0.5rem;
+    position: relative;
+  }
+
+  /* Not shadcn's: fields side by side on a wide screen. */
   .ui-field-row {
     display: grid;
     gap: 1rem;
@@ -226,16 +700,16 @@
     }
   }
 
-  /* Checkbox and radio */
-
+  /* Checkbox and radio (base-nova): size-4, border-input (dark: input/30 inside), primary
+  /* when checked, the 3px ring on focus, the destructive border and ring while invalid. */
   .ui-checkbox,
   .ui-radio {
     -webkit-appearance: none;
     appearance: none;
-    background-color: transparent;
+    background-color: var(--ui-control-bg);
     block-size: 1rem;
     border: 1px solid var(--input);
-    box-shadow: var(--shadow-xs);
+    color: var(--primary-foreground);
     cursor: pointer;
     display: inline-grid;
     flex-shrink: 0;
@@ -243,7 +717,13 @@
     margin: 0;
     outline: none;
     place-content: center;
-    transition: box-shadow 150ms, background-color 150ms, border-color 150ms;
+    position: relative;
+    transition: color 150ms, background-color 150ms, border-color 150ms, box-shadow 150ms;
+
+    &:checked {
+      background-color: var(--primary);
+      border-color: var(--primary);
+    }
 
     &:focus-visible {
       border-color: var(--ring);
@@ -256,47 +736,52 @@
     }
 
     &[aria-invalid="true"] {
-      border-color: var(--destructive);
+      border-color: var(--ui-control-invalid-border);
+      box-shadow: var(--ui-control-invalid-ring);
+
+      &:checked {
+        border-color: var(--primary);
+      }
     }
   }
 
+  /* rounded-[4px]; the check is lucide's at size-3.5. */
   .ui-checkbox {
-    border-radius: 4px;
+    border-radius: calc(0.25rem * var(--radius-scale, 1));
 
     &::before {
+      background-color: currentColor;
       block-size: 0.875rem;
-      background-color: var(--primary-foreground);
-      clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
       content: "";
       inline-size: 0.875rem;
-      scale: 0.7;
+      mask: url("check.svg") center / contain no-repeat;
       visibility: hidden;
     }
 
-    &:checked,
+    &:checked::before,
+    &:indeterminate::before {
+      visibility: visible;
+    }
+
     &:indeterminate {
       background-color: var(--primary);
       border-color: var(--primary);
 
       &::before {
-        visibility: visible;
+        background-color: currentColor;
+        block-size: 2px;
+        inline-size: 0.5rem;
+        mask: none;
       }
-    }
-
-    &:indeterminate::before {
-      block-size: 2px;
-      clip-path: none;
-      inline-size: 0.5rem;
-      scale: 1;
     }
   }
 
+  /* rounded-full; checked fills primary with a size-2 dot in primary-foreground. */
   .ui-radio {
     border-radius: 50%;
-    color: var(--primary);
 
     &::before {
-      background-color: var(--primary);
+      background-color: currentColor;
       block-size: 0.5rem;
       border-radius: 50%;
       content: "";
@@ -309,34 +794,40 @@
     }
   }
 
+  /* RadioGroup: grid gap-2, w-full. */
   .ui-radio-group {
     display: grid;
-    gap: 0.75rem;
+    gap: 0.5rem;
+    inline-size: 100%;
   }
 
-  /* Switch: a checkbox with role="switch". */
+  /* Switch: a checkbox with role="switch". 32 by 18.4px (sm: 24 by 14), a transparent
+  /* border, input when off (dark: input/80) and primary when on; the thumb size-4 (sm:
+  /* size-3) in background (dark: foreground off, primary-foreground on), moving 100% - 2px. */
   .ui-switch {
     -webkit-appearance: none;
+    align-items: center;
     appearance: none;
-    background-color: var(--input);
+    background-color: var(--ui-switch-off);
     block-size: 1.15rem;
     border: 1px solid transparent;
-    border-radius: 99rem;
-    box-shadow: var(--shadow-xs);
+    border-radius: var(--radius-pill, 99rem);
     cursor: pointer;
     display: inline-flex;
     flex-shrink: 0;
     inline-size: 2rem;
     margin: 0;
     outline: none;
-    transition: background-color 150ms, box-shadow 150ms;
+    position: relative;
+    transition: background-color 150ms, border-color 150ms, box-shadow 150ms;
 
     &::before {
-      background-color: var(--background);
+      background-color: var(--ui-switch-thumb);
       block-size: 1rem;
       border-radius: 50%;
       content: "";
       inline-size: 1rem;
+      pointer-events: none;
       transition: translate 150ms;
     }
 
@@ -344,8 +835,8 @@
       background-color: var(--primary);
 
       &::before {
-        background-color: var(--primary-foreground);
-        translate: calc(2rem - 1rem - 2px) 0;
+        background-color: var(--ui-switch-thumb-checked);
+        translate: calc(1rem - 2px) 0;
       }
     }
 
@@ -354,76 +845,269 @@
       box-shadow: var(--ring-focus);
     }
 
+    &[aria-invalid="true"] {
+      border-color: var(--ui-control-invalid-border);
+      box-shadow: var(--ui-control-invalid-ring);
+    }
+
     &:disabled {
       cursor: not-allowed;
       opacity: 0.5;
     }
   }
 
-  html[data-theme="dark"] .ui-switch:not(:checked)::before {
-    background-color: var(--foreground);
-  }
+  .ui-switch--sm {
+    block-size: 0.875rem;
+    inline-size: 1.5rem;
 
-  @media (prefers-color-scheme: dark) {
-    html:not([data-theme]) .ui-switch:not(:checked)::before {
-      background-color: var(--foreground);
+    &::before {
+      block-size: 0.75rem;
+      inline-size: 0.75rem;
+    }
+
+    &:checked::before {
+      translate: calc(0.75rem - 2px) 0;
     }
   }
 
-  html[data-theme="dark"] :is(.ui-input, .ui-textarea, .ui-select) {
-    background-color: color-mix(in oklch, var(--input) 30%, transparent);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    html:not([data-theme]) :is(.ui-input, .ui-textarea, .ui-select) {
-      background-color: color-mix(in oklch, var(--input) 30%, transparent);
-    }
-
-    html:not([data-theme]) .ui-select {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    }
-  }
-
-  html[data-theme="dark"] .ui-select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  }
-
-  /* Input group: an input with an icon, text or button attached inside its border. */
+  /* InputGroup: the border, ring and background move from the control to the group. h-8
+  /* rounded-lg; the control inside is borderless and transparent; disabled fades it all. */
   .ui-input-group {
     align-items: center;
+    background-color: var(--ui-control-bg);
+    block-size: 2rem;
     border: 1px solid var(--input);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-xs);
+    border-radius: var(--radius-control, var(--radius-lg));
     display: flex;
+    inline-size: 100%;
     min-inline-size: 0;
-    transition: border-color 150ms, box-shadow 150ms;
+    outline: none;
+    position: relative;
+    transition: color 150ms, background-color 150ms, border-color 150ms, box-shadow 150ms;
 
-    .ui-input {
+    .ui-input,
+    .ui-textarea {
+      background-color: transparent;
       border: 0;
+      border-radius: 0;
       box-shadow: none;
       flex: 1;
 
-      html & {
+      &:focus-visible,
+      &[aria-invalid="true"] {
+        box-shadow: none;
+      }
+
+      &:disabled {
         background-color: transparent;
       }
     }
 
-    /* An icon or text before or after the input. */
-    .ui-input-group__addon {
-      align-items: center;
-      color: var(--muted-foreground);
-      display: flex;
-      flex-shrink: 0;
-      gap: 0.5rem;
-      padding-inline: 0.75rem;
-
-      &:first-child { padding-inline-end: 0; }
-      &:last-child { padding-inline-start: 0; }
+    .ui-textarea {
+      padding-block: 0.5rem;
+      resize: none;
     }
 
-    &:has(.ui-input:focus-visible) {
+    &:has(.ui-textarea) {
+      block-size: auto;
+    }
+
+    &:has(.ui-input:focus-visible, .ui-textarea:focus-visible) {
       border-color: var(--ring);
-      box-shadow: var(--shadow-xs), var(--ring-focus);
+      box-shadow: var(--ring-focus);
+    }
+
+    &:has([aria-invalid="true"]) {
+      border-color: var(--destructive);
+      box-shadow: var(--ui-control-invalid-ring);
+    }
+
+    &:has(:disabled) {
+      background-color: var(--ui-control-bg-disabled);
+      opacity: 0.5;
+
+      .ui-input-group__addon {
+        opacity: 0.5;
+      }
+    }
+
+    /* Room for the addons: the input's padding meets them halfway. */
+    &:has(.ui-input-group__addon:not([class*="--inline-end"], [class*="--block-"])) .ui-input {
+      padding-inline-start: 0.375rem;
+    }
+
+    &:has(.ui-input-group__addon--inline-end) .ui-input {
+      padding-inline-end: 0.375rem;
+    }
+
+    &:has(.ui-input-group__addon--block-start, .ui-input-group__addon--block-end) {
+      block-size: auto;
+      flex-direction: column;
+    }
+
+    &:has(.ui-input-group__addon--block-start) .ui-input {
+      padding-block-end: 0.75rem;
+    }
+
+    &:has(.ui-input-group__addon--block-end) .ui-input {
+      padding-block-start: 0.75rem;
+    }
+  }
+
+  /* InputGroupAddon: muted, text-sm font-medium, py-1.5, gap-2, svgs size-4. inline-start
+  /* (the default) first with pl-2; inline-end last with pr-2; block-start / block-end a full
+  /* row above or below. A button or kbd in it pulls in to the group's edge. */
+  .ui-input-group__addon {
+    align-items: center;
+    block-size: auto;
+    color: var(--muted-foreground);
+    cursor: text;
+    display: flex;
+    flex-shrink: 0;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    gap: 0.5rem;
+    justify-content: center;
+    line-height: 1.25rem;
+    order: -1;
+    padding-block: 0.375rem;
+    padding-inline: 0.5rem 0;
+    user-select: none;
+
+    :is(svg, .icon) {
+      --icon-size: 1rem;
+
+      block-size: 1rem;
+      inline-size: 1rem;
+    }
+
+    kbd {
+      border-radius: calc(var(--radius) - 5px);
+    }
+
+    &:has(button) {
+      margin-inline-start: -0.3rem;
+    }
+
+    &:has(kbd) {
+      margin-inline-start: -0.15rem;
+    }
+  }
+
+  .ui-input-group__addon--inline-end {
+    order: 1;
+    padding-inline: 0 0.5rem;
+
+    &:has(button),
+    &:has(kbd) {
+      margin-inline-start: 0;
+    }
+
+    &:has(button) {
+      margin-inline-end: -0.3rem;
+    }
+
+    &:has(kbd) {
+      margin-inline-end: -0.15rem;
+    }
+  }
+
+  .ui-input-group__addon--block-start,
+  .ui-input-group__addon--block-end {
+    inline-size: 100%;
+    justify-content: flex-start;
+    margin-inline: 0;
+    padding-inline: 0.625rem;
+
+    &:has(button),
+    &:has(kbd) {
+      margin-inline: 0;
+    }
+  }
+
+  .ui-input-group__addon--block-start {
+    order: -1;
+    padding-block: 0.5rem 0;
+  }
+
+  .ui-input-group__addon--block-end {
+    order: 1;
+    padding-block: 0 0.5rem;
+  }
+
+  /* InputGroupText: muted text-sm with its icons. */
+  .ui-input-group__text {
+    align-items: center;
+    color: var(--muted-foreground);
+    display: flex;
+    font-size: var(--text-sm);
+    gap: 0.5rem;
+    line-height: 1.25rem;
+
+    :is(svg, .icon) {
+      --icon-size: 1rem;
+
+      block-size: 1rem;
+      inline-size: 1rem;
+      pointer-events: none;
+    }
+  }
+
+  /* InputGroupButton (a ghost ui-button): size xs by default (h-6 gap-1 px-1.5, corners
+  /* radius - 3px, svgs 3.5); icon-xs size-6, icon-sm size-8, sm the button's sm. */
+  .ui-input-group .ui-input-group__button {
+    align-items: center;
+    block-size: 1.5rem;
+    border-radius: calc(var(--radius) - 3px);
+    box-shadow: none;
+    display: flex;
+    font-size: var(--text-sm);
+    gap: 0.25rem;
+    padding-inline: 0.375rem;
+
+    :is(svg, .icon) {
+      --icon-size: 0.875rem;
+
+      block-size: 0.875rem;
+      inline-size: 0.875rem;
+    }
+  }
+
+  .ui-input-group .ui-input-group__button--sm {
+    block-size: 1.75rem;
+    border-radius: var(--radius-control, min(var(--radius-md), 0.75rem));
+    gap: 0.25rem;
+    padding-inline: 0.625rem;
+
+    :is(svg, .icon) {
+      --icon-size: 1rem;
+
+      block-size: 1rem;
+      inline-size: 1rem;
+    }
+  }
+
+  .ui-input-group .ui-input-group__button--icon-xs,
+  .ui-input-group .ui-input-group__button--icon-sm {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .ui-input-group .ui-input-group__button--icon-xs {
+    block-size: 1.5rem;
+    inline-size: 1.5rem;
+  }
+
+  .ui-input-group .ui-input-group__button--icon-sm {
+    block-size: 2rem;
+    border-radius: var(--radius-control, var(--radius-lg));
+    inline-size: 2rem;
+
+    :is(svg, .icon) {
+      --icon-size: 1rem;
+
+      block-size: 1rem;
+      inline-size: 1rem;
     }
   }
 }

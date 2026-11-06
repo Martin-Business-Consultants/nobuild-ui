@@ -1,16 +1,20 @@
-/* Input OTP (shadcn/ui input-otp): a one-time code as a row of slots, in groups with a
-/* separator between them. The slots are spans, so it also shows a code to compare against
-/* (device_approvals/new) rather than only taking one.
+/* Input OTP (shadcn/ui input-otp, base-nova): a one-time code as a row of size-8 slots
+/* joined into groups (rounded-lg at the ends), with a separator between groups. The slots
+/* are spans, so it also shows a code to compare against rather than only taking one.
 /*
 /*   <div class="ui-input-otp">
 /*     <div class="ui-input-otp__group">
-/*       <span class="ui-input-otp__slot">A</span>…
+/*       <span class="ui-input-otp__slot">A</span>
+/*       <span class="ui-input-otp__slot" data-active="true">
+/*         <span class="ui-input-otp__caret"></span>            (the blinking caret, when empty)
+/*       </span>…
 /*     </div>
-/*     <div class="ui-input-otp__separator" role="separator">-</div>
+/*     <div class="ui-input-otp__separator" role="separator">[minus icon]</div>
 /*     <div class="ui-input-otp__group">…</div>
 /*   </div>
 /*
-/* data-active="true" on a slot rings it, as the focused slot is. */
+/* data-active="true" on a slot rings it, as the focused slot is; aria-invalid="true" on a
+/* slot draws it (and rings its group) in the destructive colour. */
 @layer ui {
   .ui-input-otp {
     align-items: center;
@@ -20,58 +24,88 @@
     &:has(:disabled) {
       opacity: 0.5;
     }
+
+    &:has(input:disabled) {
+      cursor: not-allowed;
+    }
   }
 
   .ui-input-otp__group {
     align-items: center;
+    border-radius: var(--radius-control, var(--radius-lg));
     display: flex;
+
+    &:has([aria-invalid="true"]) {
+      box-shadow: var(--ui-control-invalid-ring);
+    }
   }
 
   .ui-input-otp__slot {
     align-items: center;
-    block-size: 2.25rem;
+    background-color: var(--ui-control-bg);
+    block-size: 2rem;
     border-block: 1px solid var(--input);
     border-inline-end: 1px solid var(--input);
-    box-shadow: var(--shadow-xs);
     color: var(--foreground);
     display: flex;
-    font-size: var(--text-normal);
-    inline-size: 2.25rem;
+    font-size: var(--text-sm);
+    inline-size: 2rem;
     justify-content: center;
+    line-height: 1.25rem;
     outline: none;
     position: relative;
-    transition: border-color 150ms, box-shadow 150ms;
+    transition: all 150ms;
 
     &:first-child {
-      border-end-start-radius: var(--radius-md);
+      border-end-start-radius: var(--radius-control, var(--radius-lg));
       border-inline-start: 1px solid var(--input);
-      border-start-start-radius: var(--radius-md);
+      border-start-start-radius: var(--radius-control, var(--radius-lg));
     }
 
     &:last-child {
-      border-end-end-radius: var(--radius-md);
-      border-start-end-radius: var(--radius-md);
+      border-end-end-radius: var(--radius-control, var(--radius-lg));
+      border-start-end-radius: var(--radius-control, var(--radius-lg));
+    }
+
+    &[aria-invalid="true"] {
+      border-color: var(--destructive);
     }
 
     &[data-active="true"] {
       border-color: var(--ring);
       box-shadow: var(--ring-focus);
-      z-index: 1;
+      z-index: 10;
+
+      &[aria-invalid="true"] {
+        border-color: var(--destructive);
+        box-shadow: var(--ui-control-invalid-ring);
+      }
     }
+  }
+
+  /* The caret: h-4 w-px in the foreground, blinking each second. */
+  .ui-input-otp__caret {
+    animation: ui-input-otp-caret-blink 1s ease-out infinite;
+    background-color: var(--foreground);
+    block-size: 1rem;
+    inline-size: 1px;
+    pointer-events: none;
   }
 
   .ui-input-otp__separator {
-    color: var(--muted-foreground);
+    align-items: center;
     display: flex;
-  }
 
-  html[data-theme="dark"] .ui-input-otp__slot {
-    background-color: color-mix(in oklch, var(--input) 30%, transparent);
-  }
+    :is(svg, .icon) {
+      --icon-size: 1rem;
 
-  @media (prefers-color-scheme: dark) {
-    html:not([data-theme]) .ui-input-otp__slot {
-      background-color: color-mix(in oklch, var(--input) 30%, transparent);
+      block-size: 1rem;
+      inline-size: 1rem;
     }
+  }
+
+  @keyframes ui-input-otp-caret-blink {
+    0%, 70%, 100% { opacity: 1; }
+    20%, 50% { opacity: 0; }
   }
 }

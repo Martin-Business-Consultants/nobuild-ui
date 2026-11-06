@@ -1,0 +1,48 @@
+/* Scroll area (shadcn/ui), base-nova, on the element's native scrollbars: thin 0.625rem bars,
+/* a fully rounded thumb in the border colour, no track. Size the area yourself.
+/*   <div class="ui-scroll-area" tabindex="0">…</div>
+/* Firefox and Chrome draw the thin standard scrollbar in those colours; Safari the bar below. */
+@layer ui {
+  .ui-scroll-area {
+    border-radius: inherit;
+    outline: none;
+    overflow: auto;
+    position: relative;
+    scrollbar-color: var(--border) transparent;
+    scrollbar-width: thin;
+    transition: color 150ms, box-shadow 150ms;
+
+    &:focus-visible {
+      box-shadow: var(--ring-focus);
+      outline: 1px solid var(--ring);
+    }
+  }
+
+  @supports not (scrollbar-color: auto) {
+    .ui-scroll-area {
+      &::-webkit-scrollbar {
+        block-size: 0.625rem;
+        inline-size: 0.625rem;
+      }
+
+      &::-webkit-scrollbar-track,
+      &::-webkit-scrollbar-corner {
+        background: transparent;
+      }
+
+      /* p-px plus the transparent edge on the inner side, drawn as a clipped border. */
+      &::-webkit-scrollbar-thumb {
+        background-clip: padding-box;
+        background-color: var(--border);
+        border: 1px solid transparent;
+        border-inline-start-width: 2px;
+        border-radius: var(--radius-pill, 99rem);
+      }
+
+      &::-webkit-scrollbar-thumb:horizontal {
+        border-block-start-width: 2px;
+        border-inline-start-width: 1px;
+      }
+    }
+  }
+}

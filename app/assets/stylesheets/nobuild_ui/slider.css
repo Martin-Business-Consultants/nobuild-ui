@@ -1,0 +1,93 @@
+/* Slider (shadcn/ui slider, base-nova) on a native range input: an h-1 track in muted,
+/* filled with primary up to the thumb, and a size-3 white thumb with a ring-colour border
+/* that rings (3px, ring/50) on hover, focus and drag.
+/*
+/*   <input type="range" class="ui-slider" min="0" max="100" value="50"
+/*          data-controller="ui--slider">
+/*   <input type="range" class="ui-slider ui-slider--vertical" …>      (min-h-40)
+/*
+/* Firefox fills the track itself; elsewhere the ui--slider controller keeps
+/* --ui-slider-value (0 to 1) in step with the value, and without it the track isn't filled. */
+@layer ui {
+  .ui-slider {
+    --ui-slider-direction: to right;
+
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    block-size: 0.75rem;
+    cursor: default;
+    display: block;
+    inline-size: 100%;
+    margin: 0;
+    outline: none;
+    touch-action: none;
+
+    &:disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    &::-webkit-slider-runnable-track {
+      background: linear-gradient(var(--ui-slider-direction),
+        var(--primary) calc(0.375rem + var(--ui-slider-value, 0) * (100% - 0.75rem)),
+        var(--muted) 0);
+      block-size: 0.25rem;
+      border-radius: var(--radius-pill, 99rem);
+    }
+
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      background-color: white;
+      block-size: 0.75rem;
+      border: 1px solid var(--ring);
+      border-radius: 50%;
+      inline-size: 0.75rem;
+      margin-block-start: -0.25rem;
+      transition: color 150ms, box-shadow 150ms;
+    }
+
+    &:is(:hover, :focus-visible, :active)::-webkit-slider-thumb {
+      box-shadow: var(--ring-focus);
+    }
+
+    &::-moz-range-track {
+      background-color: var(--muted);
+      block-size: 0.25rem;
+      border-radius: var(--radius-pill, 99rem);
+    }
+
+    &::-moz-range-progress {
+      background-color: var(--primary);
+      block-size: 0.25rem;
+      border-radius: var(--radius-pill, 99rem);
+    }
+
+    &::-moz-range-thumb {
+      background-color: white;
+      block-size: 0.75rem;
+      border: 1px solid var(--ring);
+      border-radius: 50%;
+      box-sizing: border-box;
+      inline-size: 0.75rem;
+      transition: color 150ms, box-shadow 150ms;
+    }
+
+    &:is(:hover, :focus-visible, :active)::-moz-range-thumb {
+      box-shadow: var(--ring-focus);
+    }
+  }
+
+  /* orientation="vertical": bottom to top, at least 10rem tall. */
+  .ui-slider--vertical {
+    --ui-slider-direction: to top;
+
+    direction: rtl;
+    writing-mode: vertical-lr;
+    /* Physical sizes: in a vertical writing mode the logical ones swap. */
+    height: 100%;
+    min-height: 10rem;
+    width: 0.75rem;
+  }
+}
