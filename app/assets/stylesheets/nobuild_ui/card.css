@@ -142,7 +142,12 @@
     gap: 0.5rem;
     padding: var(--card-spacing);
 
-    /* --bordered was the gem's opt-in rule above the footer; base-nova always draws it. */
+    /* --bordered was the gem's opt-in rule above the footer; base-nova always draws it, so it
+    /* only names the old markup now. */
+    &.ui-card__footer--bordered {
+      border-block-start-style: solid;
+    }
+
     &.ui-card__footer--end {
       justify-content: flex-end;
     }
