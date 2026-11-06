@@ -1,3 +1,5 @@
+%w[actions forms display overlays].each { require "nobuild_ui/helpers/#{it}" }
+
 module NobuildUi
   # Builders for the kit's components. The CSS classes are the components; these only spell
   # them, the way shadcn's buttonVariants() and badgeVariants() do, so a view writes
@@ -6,6 +8,11 @@ module NobuildUi
   # Icons: pass icon: "name" and the helper calls the app's icon_tag(name) when it has one.
   # An app re-defines any of these in its own helper to change them (its helpers come later).
   module Helper
+    include Helpers::Actions
+    include Helpers::Forms
+    include Helpers::Display
+    include Helpers::Overlays
+
     BUTTON_VARIANTS = %i[default destructive outline secondary ghost link].freeze
     BUTTON_SIZES = %i[default sm lg icon icon_sm icon_lg].freeze
     BADGE_VARIANTS = %i[default secondary destructive outline positive warning info negative neutral count].freeze
