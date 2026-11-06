@@ -52,7 +52,7 @@ Each file's header comment shows its markup.
 
 `NobuildUi::Helper` is included in every view: `ui_button`, `ui_link_button`,
 `ui_button_classes`, `ui_badge`, `ui_kbd`, `ui_avatar`, `ui_dropdown`, `ui_menu_item`,
-`ui_menu_label`, `ui_menu_separator`. Icons come from the app's `icon_tag(name)` when it has
+`ui_menu_label`, `ui_menu_separator`. Menus follow the shadcn docs' own style (base-nova). Icons come from the app's `icon_tag(name)` when it has
 one. An app overrides any helper by defining it in its own.
 
 ```erb
