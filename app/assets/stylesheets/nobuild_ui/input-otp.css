@@ -1,0 +1,77 @@
+/* Input OTP (shadcn/ui input-otp): a one-time code as a row of slots, in groups with a
+/* separator between them. The slots are spans, so it also shows a code to compare against
+/* (device_approvals/new) rather than only taking one.
+/*
+/*   <div class="ui-input-otp">
+/*     <div class="ui-input-otp__group">
+/*       <span class="ui-input-otp__slot">A</span>…
+/*     </div>
+/*     <div class="ui-input-otp__separator" role="separator">-</div>
+/*     <div class="ui-input-otp__group">…</div>
+/*   </div>
+/*
+/* data-active="true" on a slot rings it, as the focused slot is. */
+@layer ui {
+  .ui-input-otp {
+    align-items: center;
+    display: flex;
+    gap: 0.5rem;
+
+    &:has(:disabled) {
+      opacity: 0.5;
+    }
+  }
+
+  .ui-input-otp__group {
+    align-items: center;
+    display: flex;
+  }
+
+  .ui-input-otp__slot {
+    align-items: center;
+    block-size: 2.25rem;
+    border-block: 1px solid var(--input);
+    border-inline-end: 1px solid var(--input);
+    box-shadow: var(--shadow-xs);
+    color: var(--foreground);
+    display: flex;
+    font-size: var(--text-normal);
+    inline-size: 2.25rem;
+    justify-content: center;
+    outline: none;
+    position: relative;
+    transition: border-color 150ms, box-shadow 150ms;
+
+    &:first-child {
+      border-end-start-radius: var(--radius-md);
+      border-inline-start: 1px solid var(--input);
+      border-start-start-radius: var(--radius-md);
+    }
+
+    &:last-child {
+      border-end-end-radius: var(--radius-md);
+      border-start-end-radius: var(--radius-md);
+    }
+
+    &[data-active="true"] {
+      border-color: var(--ring);
+      box-shadow: var(--ring-focus);
+      z-index: 1;
+    }
+  }
+
+  .ui-input-otp__separator {
+    color: var(--muted-foreground);
+    display: flex;
+  }
+
+  html[data-theme="dark"] .ui-input-otp__slot {
+    background-color: color-mix(in oklch, var(--input) 30%, transparent);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    html:not([data-theme]) .ui-input-otp__slot {
+      background-color: color-mix(in oklch, var(--input) 30%, transparent);
+    }
+  }
+}

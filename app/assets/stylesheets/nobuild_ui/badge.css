@@ -1,0 +1,93 @@
+/* Badge (shadcn/ui badge): ui-badge, default (primary), --secondary, --outline, --destructive,
+/* plus status badges --positive, --warning, --info, --negative and --neutral, drawn as shadcn's
+/* data-table example draws a status (an outline badge with the status's icon). ui_badge builds
+/* one; badge_tag and status_tag pick the status. */
+@layer ui {
+  .ui-badge {
+    align-items: center;
+    background-color: var(--ui-badge-bg, var(--primary));
+    border: 1px solid var(--ui-badge-border, transparent);
+    border-radius: var(--radius-md);
+    color: var(--ui-badge-fg, var(--primary-foreground));
+    display: inline-flex;
+    flex-shrink: 0;
+    font-size: var(--text-x-small);
+    font-weight: 500;
+    gap: 0.25rem;
+    inline-size: fit-content;
+    justify-content: center;
+    line-height: 1rem;
+    overflow: hidden;
+    padding: 0.125rem 0.5rem;
+    text-decoration: none;
+    white-space: nowrap;
+
+    :is(svg, .icon) {
+      --icon-size: 0.75rem;
+
+      block-size: 0.75rem;
+      inline-size: 0.75rem;
+      pointer-events: none;
+    }
+
+    &:is(a):hover {
+      background-color: var(--ui-badge-hover-bg, color-mix(in oklch, var(--ui-badge-bg, var(--primary)) 90%, transparent));
+    }
+
+    &:focus-visible {
+      border-color: var(--ring);
+      box-shadow: var(--ring-focus);
+      outline: none;
+    }
+  }
+
+  .ui-badge--secondary {
+    --ui-badge-bg: var(--secondary);
+    --ui-badge-fg: var(--secondary-foreground);
+  }
+
+  .ui-badge--destructive {
+    --ui-badge-bg: var(--destructive);
+    --ui-badge-fg: var(--destructive-foreground);
+  }
+
+  .ui-badge--outline,
+  .ui-badge:is(.ui-badge--positive, .ui-badge--warning, .ui-badge--info, .ui-badge--negative, .ui-badge--neutral) {
+    --ui-badge-bg: transparent;
+    --ui-badge-fg: var(--foreground);
+    --ui-badge-border: var(--border);
+    --ui-badge-hover-bg: var(--accent);
+  }
+
+  /* Status: shadcn's data-table status cell — an outline badge in muted words with the
+  /* status's icon before them, the icon alone in colour (check, alert, cross, clock). */
+  .ui-badge:is(.ui-badge--positive, .ui-badge--warning, .ui-badge--info, .ui-badge--negative, .ui-badge--neutral) {
+    --ui-badge-fg: var(--muted-foreground);
+
+    padding-inline: 0.375rem;
+  }
+
+  .ui-badge:is(.ui-badge--positive, .ui-badge--warning, .ui-badge--info, .ui-badge--negative)::before {
+    background-color: var(--ui-badge-mark);
+    block-size: 0.75rem;
+    content: "";
+    flex-shrink: 0;
+    inline-size: 0.75rem;
+    mask: var(--ui-badge-icon) center / contain no-repeat;
+  }
+
+  .ui-badge--positive { --ui-badge-mark: var(--success); --ui-badge-icon: url("check-circle.svg"); }
+  .ui-badge--warning { --ui-badge-mark: var(--warning); --ui-badge-icon: url("triangle-alert.svg"); }
+  .ui-badge--info { --ui-badge-mark: var(--muted-foreground); --ui-badge-icon: url("history.svg"); }
+  .ui-badge--negative { --ui-badge-mark: var(--destructive); --ui-badge-icon: url("close-circle.svg"); }
+
+  /* A count beside a label (tabs, nav, headings). */
+  .ui-badge--count {
+    --ui-badge-bg: var(--muted);
+    --ui-badge-fg: var(--muted-foreground);
+
+    font-variant-numeric: tabular-nums;
+    min-inline-size: 1.25rem;
+    padding-inline: 0.375rem;
+  }
+}

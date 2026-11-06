@@ -1,0 +1,145 @@
+/* Command (shadcn/ui command): a search box over a list of items in groups, the item the
+/* arrow keys are on (aria-selected="true", as cmdk marks it) on the accent. The dialog shell
+/* around it in the command menu is .global-search (ui/app.css).
+/*
+/*   <div class="ui-command">
+/*     <div class="ui-command__input-wrapper">
+/*       <span class="icon icon--search"></span>
+/*       <input class="ui-command__input" placeholder="Type a command or search…">
+/*     </div>
+/*     <div class="ui-command__list">
+/*       <p class="ui-command__empty">No results found.</p>
+/*       <div class="ui-command__group">
+/*         <p class="ui-command__group-heading">Suggestions</p>
+/*         <a class="ui-command__item" role="option">… <span class="ui-command__shortcut">⌘P</span></a>
+/*       </div>
+/*       <hr class="ui-command__separator">
+/*     </div>
+/*   </div> */
+@layer ui {
+  .ui-command {
+    background-color: var(--popover);
+    border-radius: var(--radius-md);
+    color: var(--popover-foreground);
+    display: flex;
+    flex-direction: column;
+    inline-size: 100%;
+    overflow: hidden;
+  }
+
+  .ui-command__input-wrapper {
+    align-items: center;
+    block-size: 2.25rem;
+    border-block-end: 1px solid var(--border);
+    display: flex;
+    gap: 0.5rem;
+    padding-inline: 0.75rem;
+
+    .icon {
+      --icon-size: 1rem;
+
+      flex-shrink: 0;
+      opacity: 0.5;
+    }
+  }
+
+  .ui-command__input {
+    background-color: transparent;
+    block-size: 2.5rem;
+    border: 0;
+    border-radius: var(--radius-md);
+    color: inherit;
+    display: flex;
+    font: inherit;
+    font-size: var(--text-normal);
+    inline-size: 100%;
+    outline: none;
+    padding-block: 0.75rem;
+
+    &::placeholder {
+      color: var(--muted-foreground);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
+
+  .ui-command__list {
+    max-block-size: 300px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scroll-padding-block: 0.25rem;
+  }
+
+  .ui-command__empty {
+    font-size: var(--text-normal);
+    margin: 0;
+    padding-block: 1.5rem;
+    text-align: center;
+  }
+
+  .ui-command__group {
+    color: var(--foreground);
+    list-style: none;
+    margin: 0;
+    overflow: hidden;
+    padding: 0.25rem;
+  }
+
+  .ui-command__group-heading {
+    color: var(--muted-foreground);
+    font-size: var(--text-x-small);
+    font-weight: 500;
+    margin: 0;
+    padding: 0.375rem 0.5rem;
+  }
+
+  .ui-command__separator {
+    background-color: var(--border);
+    block-size: 1px;
+    border: 0;
+    margin: 0 -0.25rem;
+  }
+
+  .ui-command__item {
+    align-items: center;
+    border-radius: var(--radius-sm);
+    color: inherit;
+    cursor: default;
+    display: flex;
+    font-size: var(--text-normal);
+    gap: 0.5rem;
+    outline: none;
+    padding: 0.375rem 0.5rem;
+    position: relative;
+    text-decoration: none;
+    user-select: none;
+
+    &:is([aria-selected="true"], :focus-visible) {
+      background-color: var(--accent);
+      color: var(--accent-foreground);
+    }
+
+    &[aria-disabled="true"] {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .icon {
+      --icon-size: 1rem;
+
+      color: var(--muted-foreground);
+      flex-shrink: 0;
+      pointer-events: none;
+    }
+  }
+
+  .ui-command__shortcut {
+    color: var(--muted-foreground);
+    font-size: var(--text-x-small);
+    letter-spacing: 0.1em;
+    margin-inline-start: auto;
+  }
+}
